@@ -1,0 +1,12 @@
+.git
+.github
+.expo
+.next
+.terraform
+.turbo
+artifacts
+coverage
+dist
+node_modules
+*.log
+.env*

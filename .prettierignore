@@ -1,0 +1,10 @@
+.expo
+.next
+.turbo
+coverage
+dist
+node_modules
+web-build
+docs/contracts/openapi.json
+pnpm-lock.yaml
+infra/terraform/.terraform.lock.hcl

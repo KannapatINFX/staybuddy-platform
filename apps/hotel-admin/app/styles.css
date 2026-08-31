@@ -1,0 +1,81 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #12263f;
+  background: #f7f7f6;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  min-height: 72px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  background: #001b34;
+  color: white;
+}
+header b {
+  color: #f2c94c;
+  font-size: 22px;
+}
+main {
+  padding: 36px;
+  max-width: 1180px;
+  margin: auto;
+}
+h1 {
+  font-size: 34px;
+  margin-bottom: 8px;
+}
+.lede {
+  color: #64778b;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 28px 0;
+}
+.card {
+  background: white;
+  border: 1px solid #e6ecf2;
+  border-radius: 16px;
+  padding: 20px;
+}
+.metric {
+  font-size: 28px;
+  font-weight: 800;
+}
+.queue {
+  display: grid;
+  gap: 12px;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  padding: 16px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e6ecf2;
+}
+button,
+.button {
+  min-height: 48px;
+  background: #001b34;
+  color: white;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 18px;
+  font-weight: 700;
+}
+textarea {
+  width: 100%;
+  min-height: 160px;
+  border: 1px solid #bdc9d3;
+  border-radius: 12px;
+  padding: 12px;
+}

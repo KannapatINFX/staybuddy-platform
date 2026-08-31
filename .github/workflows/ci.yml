@@ -1,0 +1,129 @@
+name: StayBuddy CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: staybuddy-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Required / Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm ci:quality
+
+  migrations-and-integration:
+    name: Required / Migrations & Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: staybuddy_test
+          POSTGRES_PASSWORD: staybuddy
+          POSTGRES_USER: staybuddy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U staybuddy"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql://staybuddy:staybuddy@localhost:5432/staybuddy_test
+      REDIS_URL: redis://localhost:6379
+      BOOTSTRAP_PRIVATE_KEY_HEX: 0000000000000000000000000000000000000000000000000000000000000001
+      BOOTSTRAP_PUBLIC_KEY_HEX: 4cb5abf6ad79fbf5abbccafcc269d85cd2651ed4b885b5869f241aedf0a5ba29
+      EMAIL_LOOKUP_HMAC_SECRET: ci-email-hmac-secret-at-least-32-bytes
+      PII_ENCRYPTION_KEY_BASE64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      OTP_PEPPER: ci-otp-pepper-secret-at-least-32-bytes
+      GUEST_JWT_SECRET: ci-guest-jwt-secret-at-least-32-bytes
+      STAFF_JWT_SECRET: ci-staff-jwt-secret-at-least-32-bytes
+      ALLOW_TEST_OTP: "true"
+      ALLOW_TEST_OAUTH: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm migrations:check
+      - run: pnpm db:migrate
+      - run: pnpm test:integration
+
+  build-artifacts:
+    name: Required / Build Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm artifacts:check
+      - run: pnpm app-factory:validate
+      - run: docker build --tag staybuddy-api:${{ github.sha }} --file services/api/Dockerfile .
+      - run: docker build --tag staybuddy-worker:${{ github.sha }} --file services/worker/Dockerfile .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staybuddy-build-${{ github.sha }}
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 7
+          path: |
+            apps/mobile/dist
+            apps/hotel-admin/.next
+            apps/ops-admin/.next
+            apps/merchant-portal/.next
+            services/api/dist
+            services/worker/dist
+            packages/*/dist
+            docs/contracts/openapi.json
+
+  secret-scan:
+    name: Required / Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm secrets:check

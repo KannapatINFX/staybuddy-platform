@@ -1,0 +1,25 @@
+{
+  "hotelId": "hotel-andaman-bay",
+  "appId": "app-andaman-bay",
+  "slug": "andaman-bay-demo",
+  "appName": "Andaman Bay",
+  "displayName": "Andaman Bay Demo Hotel",
+  "appInstallationKey": "andaman-bay-public-app-key-v1",
+  "iosBundleIdentifier": "com.staybuddy.andamanbaydemo",
+  "androidPackage": "com.staybuddy.andamanbaydemo",
+  "scheme": "andamanbay",
+  "defaultLocale": "th",
+  "supportedLocales": ["en", "th", "zh-CN", "ru"],
+  "bootstrapPublicKeyHex": "4cb5abf6ad79fbf5abbccafcc269d85cd2651ed4b885b5869f241aedf0a5ba29",
+  "assetStatus": "PLACEHOLDER",
+  "theme": {
+    "primary": "#123B3A",
+    "accent": "#D2A85A",
+    "canvas": "#FFF9EF",
+    "surfaceWarm": "#EDE2CF",
+    "ink": "#173332",
+    "divider": "#E3ECE9",
+    "logoUrl": "https://assets.example.invalid/andaman-bay-demo/logo.png",
+    "heroImageUrl": "https://assets.example.invalid/andaman-bay-demo/hero.jpg"
+  }
+}

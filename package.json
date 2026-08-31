@@ -1,0 +1,45 @@
+{
+  "name": "staybuddy-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "artifacts:check": "node scripts/check-build-artifacts.mjs",
+    "ci:quality": "pnpm format:check && pnpm lint && pnpm dependencies:check && pnpm fixtures:check && pnpm contracts:check && pnpm typecheck && pnpm test",
+    "ci:verify": "pnpm ci:quality && pnpm migrations:check && pnpm db:migrate && pnpm test:integration && pnpm build && pnpm artifacts:check && pnpm app-factory:validate && pnpm secrets:check",
+    "dev": "turbo run dev --parallel",
+    "dependencies:check": "node scripts/check-dependency-policy.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "fixtures:check": "node scripts/check-test-fixtures.mjs",
+    "lint": "eslint --max-warnings=0 .",
+    "migrations:check": "node scripts/check-migrations.mjs",
+    "secrets:check": "node scripts/scan-secrets.mjs",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "pnpm --filter @staybuddy/db test:integration && pnpm --filter @staybuddy/api test:integration",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "contracts:generate": "pnpm --filter @staybuddy/contracts generate:openapi",
+    "contracts:check": "pnpm --filter @staybuddy/contracts check:openapi && pnpm --filter @staybuddy/contracts test",
+    "db:migrate": "pnpm --filter @staybuddy/db migrate",
+    "app-factory:validate": "tsx scripts/validate-app-factory.ts",
+    "app-factory:export:synthetic": "tsx scripts/export-synthetic-apps.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@types/node": "^24.10.0",
+    "eslint": "^10.0.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.9.6",
+    "tsx": "^4.20.6",
+    "turbo": "^2.10.12",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.68.0",
+    "vitest": "^4.1.11"
+  }
+}

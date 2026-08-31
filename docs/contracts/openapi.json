@@ -1,0 +1,3555 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "StayBuddy API",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "/v1"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Healthy"
+          }
+        }
+      }
+    },
+    "/mobile/bootstrap": {
+      "get": {
+        "operationId": "getMobileBootstrap",
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SignedBootstrapManifest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedBootstrapManifest"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/hotels": {
+      "get": {
+        "operationId": "listHotels",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HotelSummary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HotelSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createHotel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHotelInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CreatedHotel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedHotel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/app-builds": {
+      "post": {
+        "operationId": "createAppBuild",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppBuildCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AppBuildReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppBuildReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports/preview": {
+      "post": {
+        "operationId": "previewReservationImport",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationPreviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ImportPreview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports/commit": {
+      "post": {
+        "operationId": "commitReservationImport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationCommitInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ReservationCommitResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationCommitResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservations/manual": {
+      "post": {
+        "operationId": "createManualReservation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CanonicalReservation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ReservationCommitResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationCommitResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservations": {
+      "get": {
+        "operationId": "listReservations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReservationSummary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/stays/{stayId}/claims": {
+      "post": {
+        "operationId": "issueStayClaim",
+        "parameters": [
+          {
+            "name": "stayId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueAccess"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "IssuedAccess",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedAccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/stays/{stayId}/prearrival-invitations": {
+      "post": {
+        "operationId": "issuePrearrivalInvitation",
+        "parameters": [
+          {
+            "name": "stayId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "IssuedAccess",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedAccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stay-claims/scan": {
+      "post": {
+        "operationId": "scanStayClaim",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimScanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ClaimSession",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/prearrival-invitations/scan": {
+      "post": {
+        "operationId": "scanPrearrivalInvitation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimScanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ClaimSession",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/auth/email/start": {
+      "post": {
+        "operationId": "startEmailOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailOtpStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OtpChallenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpChallenge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/auth/email/verify": {
+      "post": {
+        "operationId": "verifyEmailOtp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailOtpVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "GuestSession",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/auth/oauth": {
+      "post": {
+        "operationId": "verifyOAuth",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OAuthIdentityAssertion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "GuestSession",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/consents": {
+      "post": {
+        "operationId": "recordConsent",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ConsentReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/stay-claims/complete": {
+      "post": {
+        "operationId": "completeStayClaim",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimCompleteCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "StayActivation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayActivation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/prearrival-invitations/complete": {
+      "post": {
+        "operationId": "completePrearrivalInvitation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationCompleteCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "StayActivation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayActivation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/me/devices/push-permission": {
+      "post": {
+        "operationId": "updatePushPermission",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushPermissionCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PushPermissionCommand",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushPermissionCommand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-App-Installation-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "INVALID_REQUEST",
+              "UNAUTHENTICATED",
+              "FORBIDDEN",
+              "TENANT_NOT_RESOLVED",
+              "NOT_FOUND",
+              "CONFLICT",
+              "RATE_LIMITED",
+              "CLAIM_EXPIRED",
+              "CLAIM_REPLAYED",
+              "CLAIM_REVOKED",
+              "OTP_INVALID",
+              "OTP_EXPIRED",
+              "TERMS_REQUIRED",
+              "INTERNAL_ERROR"
+            ]
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "traceId",
+          "retryable"
+        ],
+        "additionalProperties": false
+      },
+      "BootstrapManifest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "number",
+            "const": 1
+          },
+          "appInstallationKey": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 120
+          },
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "appName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "hotelDisplayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "theme": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "accent": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "canvas": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "surfaceWarm": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "ink": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "divider": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "logoUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "heroImageUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "primary",
+              "accent",
+              "canvas",
+              "surfaceWarm",
+              "ink",
+              "divider",
+              "logoUrl"
+            ],
+            "additionalProperties": false
+          },
+          "supportedLocales": {
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "en",
+                "th",
+                "zh-CN",
+                "ru"
+              ]
+            }
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "zh-CN",
+              "ru"
+            ]
+          },
+          "voiceProfile": {
+            "type": "string",
+            "enum": [
+              "FIVE_STAR_RESORT",
+              "FIVE_STAR_BOUTIQUE"
+            ]
+          },
+          "features": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "minimumVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "maintenance": {
+            "type": "object",
+            "properties": {
+              "active": {
+                "type": "boolean"
+              },
+              "messageKey": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "active"
+            ],
+            "additionalProperties": false
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "appInstallationKey",
+          "hotelId",
+          "appId",
+          "appName",
+          "hotelDisplayName",
+          "theme",
+          "supportedLocales",
+          "defaultLocale",
+          "voiceProfile",
+          "features",
+          "minimumVersion",
+          "maintenance",
+          "issuedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "SignedBootstrapManifest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "manifest": {
+            "type": "object",
+            "properties": {
+              "schemaVersion": {
+                "type": "number",
+                "const": 1
+              },
+              "appInstallationKey": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 120
+              },
+              "hotelId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "appId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "appName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "hotelDisplayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "theme": {
+                "type": "object",
+                "properties": {
+                  "primary": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "canvas": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "surfaceWarm": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "ink": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "divider": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "heroImageUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "primary",
+                  "accent",
+                  "canvas",
+                  "surfaceWarm",
+                  "ink",
+                  "divider",
+                  "logoUrl"
+                ],
+                "additionalProperties": false
+              },
+              "supportedLocales": {
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "en",
+                    "th",
+                    "zh-CN",
+                    "ru"
+                  ]
+                }
+              },
+              "defaultLocale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "th",
+                  "zh-CN",
+                  "ru"
+                ]
+              },
+              "voiceProfile": {
+                "type": "string",
+                "enum": [
+                  "FIVE_STAR_RESORT",
+                  "FIVE_STAR_BOUTIQUE"
+                ]
+              },
+              "features": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              },
+              "minimumVersion": {
+                "type": "string",
+                "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              },
+              "maintenance": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "messageKey": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "active"
+                ],
+                "additionalProperties": false
+              },
+              "issuedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "appInstallationKey",
+              "hotelId",
+              "appId",
+              "appName",
+              "hotelDisplayName",
+              "theme",
+              "supportedLocales",
+              "defaultLocale",
+              "voiceProfile",
+              "features",
+              "minimumVersion",
+              "maintenance",
+              "issuedAt",
+              "expiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "signature": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{128}$"
+          },
+          "algorithm": {
+            "type": "string",
+            "const": "Ed25519"
+          }
+        },
+        "required": [
+          "manifest",
+          "signature",
+          "algorithm"
+        ],
+        "additionalProperties": false
+      },
+      "HotelConfiguration": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "legalName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ONBOARDING",
+              "PILOT",
+              "LIVE",
+              "SUSPENDED"
+            ]
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "countryCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "supportedLocales": {
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "en",
+                "th",
+                "zh-CN",
+                "ru"
+              ]
+            }
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "zh-CN",
+              "ru"
+            ]
+          },
+          "voiceProfile": {
+            "type": "string",
+            "enum": [
+              "FIVE_STAR_RESORT",
+              "FIVE_STAR_BOUTIQUE"
+            ]
+          },
+          "theme": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "accent": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "canvas": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "surfaceWarm": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "ink": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "divider": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "logoUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "heroImageUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "primary",
+              "accent",
+              "canvas",
+              "surfaceWarm",
+              "ink",
+              "divider",
+              "logoUrl"
+            ],
+            "additionalProperties": false
+          },
+          "commercial": {
+            "type": "object",
+            "properties": {
+              "roomCount": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "listPricePerRoomThb": {
+                "type": "number",
+                "const": 150
+              },
+              "minimumBillableRooms": {
+                "type": "number",
+                "const": 50
+              },
+              "discountMinor": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "waiverReason": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "commerceCommissionBasisPoints": {
+                "type": "number",
+                "const": 500
+              },
+              "aiMarkupBasisPoints": {
+                "type": "number",
+                "const": 1250
+              }
+            },
+            "required": [
+              "roomCount",
+              "listPricePerRoomThb",
+              "minimumBillableRooms",
+              "discountMinor",
+              "commerceCommissionBasisPoints",
+              "aiMarkupBasisPoints"
+            ],
+            "additionalProperties": false
+          },
+          "departments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 80
+                },
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "defaultSlaMinutes": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "name",
+                "defaultSlaMinutes"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "features": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "legalName",
+          "displayName",
+          "status",
+          "timezone",
+          "countryCode",
+          "supportedLocales",
+          "defaultLocale",
+          "voiceProfile",
+          "theme",
+          "commercial",
+          "departments",
+          "features"
+        ],
+        "additionalProperties": false
+      },
+      "CreateHotelInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "roomCount": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2
+          }
+        },
+        "required": [
+          "slug",
+          "legalName",
+          "displayName",
+          "roomCount",
+          "timezone"
+        ],
+        "additionalProperties": false
+      },
+      "CreatedHotel": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "appId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "appInstallationKey": {
+            "type": "string",
+            "minLength": 16
+          },
+          "status": {
+            "type": "string",
+            "const": "ONBOARDING"
+          },
+          "nextStep": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hotelId",
+          "appId",
+          "appInstallationKey",
+          "status",
+          "nextStep"
+        ],
+        "additionalProperties": false
+      },
+      "HotelSummary": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "slug": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "roomCount": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "appStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "appUpdatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "displayName",
+          "status",
+          "roomCount",
+          "appStatus",
+          "appUpdatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "AppBuildCommand": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelAppId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "IOS",
+              "ANDROID"
+            ]
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "DEVELOPMENT",
+              "PREVIEW",
+              "PRODUCTION"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hotelId",
+          "hotelAppId",
+          "platform",
+          "profile",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "AppBuildReceipt": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "buildJobId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "status": {
+            "type": "string",
+            "const": "QUEUED"
+          }
+        },
+        "required": [
+          "buildJobId",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "CanonicalReservation": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "sourceSystem": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "externalReservationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "MODIFIED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          },
+          "bookingSource": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "confirmationCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "primaryGuest": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "nationality": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              },
+              "preferredLanguage": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "th",
+                  "zh-CN",
+                  "ru"
+                ]
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "checkInAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "checkOutAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "rooms": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "externalRoomId": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "roomType": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "roomNumber": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "adults": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "children": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "rateSummary": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 3
+              },
+              "totalMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "currency",
+              "totalMinor"
+            ],
+            "additionalProperties": false
+          },
+          "specialRequests": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "updatedAtSource": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "sourceSystem",
+          "externalReservationId",
+          "status",
+          "bookingSource",
+          "confirmationCode",
+          "primaryGuest",
+          "checkInAt",
+          "checkOutAt",
+          "timezone",
+          "rooms",
+          "updatedAtSource"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationPreviewInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "csv": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mapping": {
+            "type": "object",
+            "properties": {
+              "sourceSystem": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "columns": {
+                "type": "object",
+                "properties": {
+                  "externalReservationId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  },
+                  "confirmationCode": {
+                    "type": "string"
+                  },
+                  "guestName": {
+                    "type": "string"
+                  },
+                  "guestEmail": {
+                    "type": "string"
+                  },
+                  "nationality": {
+                    "type": "string"
+                  },
+                  "preferredLanguage": {
+                    "type": "string"
+                  },
+                  "checkInAt": {
+                    "type": "string"
+                  },
+                  "checkOutAt": {
+                    "type": "string"
+                  },
+                  "roomType": {
+                    "type": "string"
+                  },
+                  "roomNumber": {
+                    "type": "string"
+                  },
+                  "adults": {
+                    "type": "string"
+                  },
+                  "children": {
+                    "type": "string"
+                  },
+                  "updatedAtSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "externalReservationId",
+                  "status",
+                  "bookingSource",
+                  "confirmationCode",
+                  "guestName",
+                  "checkInAt",
+                  "checkOutAt"
+                ],
+                "additionalProperties": false
+              },
+              "defaults": {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 80
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "timezone"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "sourceSystem",
+              "columns",
+              "defaults"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "csv",
+          "mapping"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationCommitInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "object",
+            "properties": {
+              "batchId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "totalRows": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "validRows": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "rejectedRows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "rowNumber": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "required": [
+                    "rowNumber",
+                    "code",
+                    "detail"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "reservations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sourceSystem": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "externalReservationId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "CONFIRMED",
+                        "MODIFIED",
+                        "CANCELLED",
+                        "NO_SHOW"
+                      ]
+                    },
+                    "bookingSource": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "confirmationCode": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "primaryGuest": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "nationality": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 2
+                        },
+                        "preferredLanguage": {
+                          "type": "string",
+                          "enum": [
+                            "en",
+                            "th",
+                            "zh-CN",
+                            "ru"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "checkInAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "checkOutAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 80
+                    },
+                    "rooms": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "externalRoomId": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "roomType": {
+                            "type": "string",
+                            "maxLength": 120
+                          },
+                          "roomNumber": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "adults": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "children": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "rateSummary": {
+                      "type": "object",
+                      "properties": {
+                        "currency": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 3
+                        },
+                        "totalMinor": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "currency",
+                        "totalMinor"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "specialRequests": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    },
+                    "updatedAtSource": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                    }
+                  },
+                  "required": [
+                    "sourceSystem",
+                    "externalReservationId",
+                    "status",
+                    "bookingSource",
+                    "confirmationCode",
+                    "primaryGuest",
+                    "checkInAt",
+                    "checkOutAt",
+                    "timezone",
+                    "rooms",
+                    "updatedAtSource"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "batchId",
+              "totalRows",
+              "validRows",
+              "rejectedRows",
+              "reservations"
+            ],
+            "additionalProperties": false
+          },
+          "mapping": {
+            "type": "object",
+            "properties": {
+              "sourceSystem": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "columns": {
+                "type": "object",
+                "properties": {
+                  "externalReservationId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  },
+                  "confirmationCode": {
+                    "type": "string"
+                  },
+                  "guestName": {
+                    "type": "string"
+                  },
+                  "guestEmail": {
+                    "type": "string"
+                  },
+                  "nationality": {
+                    "type": "string"
+                  },
+                  "preferredLanguage": {
+                    "type": "string"
+                  },
+                  "checkInAt": {
+                    "type": "string"
+                  },
+                  "checkOutAt": {
+                    "type": "string"
+                  },
+                  "roomType": {
+                    "type": "string"
+                  },
+                  "roomNumber": {
+                    "type": "string"
+                  },
+                  "adults": {
+                    "type": "string"
+                  },
+                  "children": {
+                    "type": "string"
+                  },
+                  "updatedAtSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "externalReservationId",
+                  "status",
+                  "bookingSource",
+                  "confirmationCode",
+                  "guestName",
+                  "checkInAt",
+                  "checkOutAt"
+                ],
+                "additionalProperties": false
+              },
+              "defaults": {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 80
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "timezone"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "sourceSystem",
+              "columns",
+              "defaults"
+            ],
+            "additionalProperties": false
+          },
+          "mappingName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "preview",
+          "mapping",
+          "mappingName"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationCommitResult": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "COMPLETED",
+              "PARTIALLY_REJECTED"
+            ]
+          },
+          "created": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "updated": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "batchId",
+          "status",
+          "created",
+          "updated",
+          "rejected"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationSummary": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "externalReservationId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "bookingSource": {
+            "type": "string"
+          },
+          "confirmationCode": {
+            "type": "string"
+          },
+          "primaryGuestName": {
+            "type": "string"
+          },
+          "nationality": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preferredLocale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checkInAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "checkOutAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "stayId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "lifecycle": {
+            "type": "string"
+          },
+          "roomType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roomNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "externalReservationId",
+          "status",
+          "bookingSource",
+          "confirmationCode",
+          "primaryGuestName",
+          "nationality",
+          "preferredLocale",
+          "checkInAt",
+          "checkOutAt",
+          "stayId",
+          "lifecycle",
+          "roomType",
+          "roomNumber"
+        ],
+        "additionalProperties": false
+      },
+      "ImportMapping": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "sourceSystem": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "columns": {
+            "type": "object",
+            "properties": {
+              "externalReservationId": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "bookingSource": {
+                "type": "string"
+              },
+              "confirmationCode": {
+                "type": "string"
+              },
+              "guestName": {
+                "type": "string"
+              },
+              "guestEmail": {
+                "type": "string"
+              },
+              "nationality": {
+                "type": "string"
+              },
+              "preferredLanguage": {
+                "type": "string"
+              },
+              "checkInAt": {
+                "type": "string"
+              },
+              "checkOutAt": {
+                "type": "string"
+              },
+              "roomType": {
+                "type": "string"
+              },
+              "roomNumber": {
+                "type": "string"
+              },
+              "adults": {
+                "type": "string"
+              },
+              "children": {
+                "type": "string"
+              },
+              "updatedAtSource": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "externalReservationId",
+              "status",
+              "bookingSource",
+              "confirmationCode",
+              "guestName",
+              "checkInAt",
+              "checkOutAt"
+            ],
+            "additionalProperties": false
+          },
+          "defaults": {
+            "type": "object",
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 80
+              },
+              "bookingSource": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "timezone"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "sourceSystem",
+          "columns",
+          "defaults"
+        ],
+        "additionalProperties": false
+      },
+      "ImportPreview": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "totalRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "validRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejectedRows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rowNumber": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "rowNumber",
+                "code",
+                "detail"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "reservations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceSystem": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "externalReservationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "CONFIRMED",
+                    "MODIFIED",
+                    "CANCELLED",
+                    "NO_SHOW"
+                  ]
+                },
+                "bookingSource": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "confirmationCode": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "primaryGuest": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "nationality": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 2
+                    },
+                    "preferredLanguage": {
+                      "type": "string",
+                      "enum": [
+                        "en",
+                        "th",
+                        "zh-CN",
+                        "ru"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "checkInAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "checkOutAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "timezone": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 80
+                },
+                "rooms": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "externalRoomId": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "roomType": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "roomNumber": {
+                        "type": "string",
+                        "maxLength": 40
+                      },
+                      "adults": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "children": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "rateSummary": {
+                  "type": "object",
+                  "properties": {
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "currency",
+                    "totalMinor"
+                  ],
+                  "additionalProperties": false
+                },
+                "specialRequests": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "updatedAtSource": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "sourceSystem",
+                "externalReservationId",
+                "status",
+                "bookingSource",
+                "confirmationCode",
+                "primaryGuest",
+                "checkInAt",
+                "checkOutAt",
+                "timezone",
+                "rooms",
+                "updatedAtSource"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "batchId",
+          "totalRows",
+          "validRows",
+          "rejectedRows",
+          "reservations"
+        ],
+        "additionalProperties": false
+      },
+      "IssueAccess": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "roomNumber": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "ttlMinutes": {
+            "default": 30,
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 120
+          }
+        },
+        "required": [
+          "ttlMinutes"
+        ],
+        "additionalProperties": false
+      },
+      "IssuedAccess": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opaqueToken": {
+            "type": "string",
+            "minLength": 32
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "opaqueToken",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "ClaimScanRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opaqueToken": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "opaqueToken"
+        ],
+        "additionalProperties": false
+      },
+      "ClaimSession": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "claimSessionId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "preview": {
+            "type": "object",
+            "properties": {
+              "hotelDisplayName": {
+                "type": "string"
+              },
+              "checkInDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              "checkOutDate": {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              "guestNameMasked": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hotelDisplayName",
+              "checkInDate",
+              "checkOutDate",
+              "guestNameMasked"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "claimSessionId",
+          "expiresAt",
+          "preview"
+        ],
+        "additionalProperties": false
+      },
+      "InvitationCompleteCommand": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "invitationSessionId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "acceptedTermsVersion": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "invitationSessionId",
+          "acceptedTermsVersion"
+        ],
+        "additionalProperties": false
+      },
+      "EmailOtpStart": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "installationId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "email",
+          "installationId"
+        ],
+        "additionalProperties": false
+      },
+      "EmailOtpVerify": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          },
+          "installationId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "challengeId",
+          "code",
+          "installationId"
+        ],
+        "additionalProperties": false
+      },
+      "OtpChallenge": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "challengeId",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "OAuthIdentityAssertion": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "apple",
+              "google"
+            ]
+          },
+          "idToken": {
+            "type": "string",
+            "minLength": 20
+          },
+          "installationId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "provider",
+          "idToken",
+          "installationId"
+        ],
+        "additionalProperties": false
+      },
+      "GuestSession": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "sessionId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "accessToken": {
+            "type": "string",
+            "minLength": 20
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "accountId",
+          "hotelId",
+          "sessionId",
+          "accessToken",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
+      "ConsentCommand": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "TERMS",
+              "PRIVACY",
+              "MARKETING",
+              "PARTNER_OFFERS"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "SERVICE",
+              "EMAIL",
+              "PUSH",
+              "IN_APP"
+            ]
+          },
+          "granted": {
+            "type": "boolean"
+          },
+          "definitionVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "zh-CN",
+              "ru"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "ONBOARDING",
+              "SETTINGS",
+              "POLICY_UPDATE"
+            ]
+          }
+        },
+        "required": [
+          "purpose",
+          "channel",
+          "granted",
+          "definitionVersion",
+          "locale",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "ConsentReceipt": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "TERMS",
+              "PRIVACY",
+              "MARKETING",
+              "PARTNER_OFFERS"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "SERVICE",
+              "EMAIL",
+              "PUSH",
+              "IN_APP"
+            ]
+          },
+          "granted": {
+            "type": "boolean"
+          },
+          "definitionVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "zh-CN",
+              "ru"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "ONBOARDING",
+              "SETTINGS",
+              "POLICY_UPDATE"
+            ]
+          },
+          "consentEventId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "purpose",
+          "channel",
+          "granted",
+          "definitionVersion",
+          "locale",
+          "source",
+          "consentEventId"
+        ],
+        "additionalProperties": false
+      },
+      "ClaimCompleteCommand": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "claimSessionId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "accountId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "acceptedTermsVersion": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "claimSessionId",
+          "accountId",
+          "acceptedTermsVersion"
+        ],
+        "additionalProperties": false
+      },
+      "StayActivation": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "stayId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "lifecycle": {
+            "type": "string",
+            "enum": [
+              "IN_HOUSE",
+              "PRE_ARRIVAL_ACTIVATED"
+            ]
+          },
+          "sensitiveRoomDataUnlocked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stayId",
+          "lifecycle"
+        ],
+        "additionalProperties": false
+      },
+      "PushPermissionCommand": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "installationId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "GRANTED",
+              "DECLINED",
+              "UNDETERMINED",
+              "REVOKED"
+            ]
+          }
+        },
+        "required": [
+          "installationId",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 200
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

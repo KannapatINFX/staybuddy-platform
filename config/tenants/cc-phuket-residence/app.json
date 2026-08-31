@@ -1,0 +1,25 @@
+{
+  "hotelId": "hotel-cc-phuket",
+  "appId": "app-cc-phuket",
+  "slug": "cc-phuket-residence",
+  "appName": "CC Phuket Residence",
+  "displayName": "CC Phuket Residence",
+  "appInstallationKey": "cc-phuket-public-app-key-v1",
+  "iosBundleIdentifier": "com.staybuddy.ccphuketresidence",
+  "androidPackage": "com.staybuddy.ccphuketresidence",
+  "scheme": "ccphuket",
+  "defaultLocale": "en",
+  "supportedLocales": ["en", "th", "zh-CN", "ru"],
+  "bootstrapPublicKeyHex": "4cb5abf6ad79fbf5abbccafcc269d85cd2651ed4b885b5869f241aedf0a5ba29",
+  "assetStatus": "PLACEHOLDER",
+  "theme": {
+    "primary": "#102A43",
+    "accent": "#C9A45C",
+    "canvas": "#FCF9F3",
+    "surfaceWarm": "#EFE6D7",
+    "ink": "#152535",
+    "divider": "#EDF1F3",
+    "logoUrl": "https://assets.example.invalid/cc-phuket-residence/logo.png",
+    "heroImageUrl": "https://assets.example.invalid/cc-phuket-residence/hero.jpg"
+  }
+}
