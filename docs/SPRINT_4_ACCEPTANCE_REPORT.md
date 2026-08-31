@@ -2,7 +2,7 @@
 
 **Sprint:** 4 — Environments, Infrastructure, and Observability Baseline
 
-**Review date:** 31 August 2026
+**Review date:** 1 September 2026
 
 **Status:** CONDITIONAL — implementation and local parity pass; protected PR approval and authorized AWS dev deployment remain external
 
@@ -51,19 +51,19 @@ Observed evidence:
 
 ## Hosted CI evidence
 
-Pull request [#2](https://github.com/KannapatINFX/staybuddy-platform/pull/2) at head commit `f56fb619a60977569f15a8b0e9299340c72b154b` passed all protected checks in [run 33385277468](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33385277468) on 31 August 2026:
+Pull request [#2](https://github.com/KannapatINFX/staybuddy-platform/pull/2) at implementation head commit `9ef4b4008b3eeb932b6117d17702de39037441ec` passed all protected checks in [run 33385841523](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33385841523) on 31 August 2026:
 
-- `Required / Quality`: PASS in 1m27s, including Terraform validation and all 32 foundation controls.
-- `Required / Migrations & Integration`: PASS in 1m02s against clean PostgreSQL/Redis services, including database 4/4 and API 4/4.
-- `Required / Build Artifacts`: PASS in 3m30s, including both production Docker image builds.
-- `Required / Secret Scan`: PASS in 33s.
-- Artifact `staybuddy-build-795b58c9f2bd4d1406a05e4ce009ee71a70cb7bb` (ID `9755415734`, 78,464,082 bytes) is retained through 7 September 2026.
+- `Required / Quality`: PASS in 1m25s, including Terraform validation and all 32 foundation controls.
+- `Required / Migrations & Integration`: PASS in 1m05s against clean PostgreSQL/Redis services, including database 4/4 and API 4/4.
+- `Required / Build Artifacts`: PASS in 3m34s, including both production Docker image builds.
+- `Required / Secret Scan`: PASS in 35s.
+- Artifact `staybuddy-build-2462e0e7cef127b715a618525254ec1e8f9eb2e8` (ID `9755621848`, 78,478,625 bytes) is retained through 7 September 2026.
 
-GitHub reports the PR `BLOCKED` with `REVIEW_REQUIRED`, proving the protected one-approval rule remains enforced.
+GitHub reports the PR `BLOCKED` with `REVIEW_REQUIRED`, proving the protected one-approval rule remains enforced. A closure audit on 1 September 2026 found only the repository administrator `KannapatINFX` in the collaborator list, so no independent reviewer is currently available.
 
 ## Exit-gate decision
 
-The code, local evidence, hosted CI, and container builds satisfy every repository-controlled portion of Sprint 4. The source exit gate specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time.
+The code, local evidence, hosted CI, and container builds satisfy every repository-controlled portion of Sprint 4. The source exit gate specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time. The closure audit also confirmed that this workstation has no AWS CLI/profile or AWS/Terraform/Sentry credentials, both available browser sessions reach provider sign-in pages, the GitHub repository has no Actions variables or secrets, and it has no configured environments.
 
 Therefore Sprint 4 is **CONDITIONAL**, not complete. It becomes complete only when:
 
