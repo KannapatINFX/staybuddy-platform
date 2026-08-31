@@ -258,7 +258,7 @@ resource "aws_db_instance" "postgres" {
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.main.arn
   db_name                         = "staybuddy"
-  username                        = "staybuddy_app"
+  username                        = "staybuddy_migrator"
   manage_master_user_password     = true
   master_user_secret_kms_key_id   = aws_kms_key.main.arn
   db_subnet_group_name            = aws_db_subnet_group.main.name
@@ -475,12 +475,12 @@ resource "aws_ecs_task_definition" "api" {
         { name = "SERVICE_VERSION", value = var.release_version },
         { name = "OTEL_EXPORTER_OTLP_ENDPOINT", value = "http://localhost:4318" },
         { name = "PGDATABASE", value = "staybuddy" },
+        { name = "PGUSER", value = "staybuddy_runtime" },
         { name = "PGSSLMODE", value = "require" }
       ]
       secrets = [
         { name = "PGHOST", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:host::" },
-        { name = "PGUSER", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::" },
-        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" },
+        { name = "PGPASSWORD", valueFrom = "${var.application_secret_arn}:DATABASE_RUNTIME_PASSWORD::" },
         { name = "BOOTSTRAP_PRIVATE_KEY_HEX", valueFrom = "${var.application_secret_arn}:BOOTSTRAP_PRIVATE_KEY_HEX::" },
         { name = "EMAIL_LOOKUP_HMAC_SECRET", valueFrom = "${var.application_secret_arn}:EMAIL_LOOKUP_HMAC_SECRET::" },
         { name = "PII_ENCRYPTION_KEY_BASE64", valueFrom = "${var.application_secret_arn}:PII_ENCRYPTION_KEY_BASE64::" },
@@ -509,13 +509,15 @@ resource "aws_ecs_task_definition" "api" {
       essential = false
       command   = ["node", "node_modules/@staybuddy/db/dist/cli.js", "migrate"]
       environment = [
+        { name = "NODE_ENV", value = "production" },
         { name = "PGDATABASE", value = "staybuddy" },
         { name = "PGSSLMODE", value = "require" }
       ]
       secrets = [
         { name = "PGHOST", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:host::" },
         { name = "PGUSER", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::" },
-        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" }
+        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" },
+        { name = "DATABASE_RUNTIME_PASSWORD", valueFrom = "${var.application_secret_arn}:DATABASE_RUNTIME_PASSWORD::" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
@@ -563,13 +565,13 @@ resource "aws_ecs_task_definition" "worker" {
         { name = "SERVICE_VERSION", value = var.release_version },
         { name = "OTEL_EXPORTER_OTLP_ENDPOINT", value = "http://localhost:4318" },
         { name = "PGDATABASE", value = "staybuddy" },
+        { name = "PGUSER", value = "staybuddy_runtime" },
         { name = "PGSSLMODE", value = "require" },
         { name = "REDIS_URL", value = "rediss://${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" }
       ]
       secrets = [
         { name = "PGHOST", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:host::" },
-        { name = "PGUSER", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::" },
-        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" },
+        { name = "PGPASSWORD", valueFrom = "${var.application_secret_arn}:DATABASE_RUNTIME_PASSWORD::" },
         { name = "SENTRY_DSN", valueFrom = "${var.application_secret_arn}:SENTRY_DSN::" }
       ]
       logConfiguration = {
@@ -592,13 +594,15 @@ resource "aws_ecs_task_definition" "worker" {
       essential = false
       command   = ["node", "node_modules/@staybuddy/db/dist/cli.js", "migrate"]
       environment = [
+        { name = "NODE_ENV", value = "production" },
         { name = "PGDATABASE", value = "staybuddy" },
         { name = "PGSSLMODE", value = "require" }
       ]
       secrets = [
         { name = "PGHOST", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:host::" },
         { name = "PGUSER", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:username::" },
-        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" }
+        { name = "PGPASSWORD", valueFrom = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}:password::" },
+        { name = "DATABASE_RUNTIME_PASSWORD", valueFrom = "${var.application_secret_arn}:DATABASE_RUNTIME_PASSWORD::" }
       ]
       logConfiguration = {
         logDriver = "awslogs"

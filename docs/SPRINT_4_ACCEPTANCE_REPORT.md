@@ -6,7 +6,7 @@
 
 **Status:** CONDITIONAL — implementation and local parity pass; protected PR approval and authorized AWS dev deployment remain external
 
-**Next sprint:** Sprint 5 — not started
+**Next sprint:** Sprint 5 — implementation and local exit gate conditionally accepted on a stacked branch
 
 ## Source reviewed
 
@@ -72,4 +72,4 @@ Therefore Sprint 4 is **CONDITIONAL**, not complete. It becomes complete only wh
 2. the accepted commit is deployed by `Deploy Dev` to an authorized AWS dev environment; and
 3. retained workflow evidence proves stable API/worker services, PostgreSQL-backed health, a valid response trace ID, and the matching X-Ray trace.
 
-No branch-protection requirement may be weakened to close this gate. Sprint 5 remains not started.
+No branch-protection requirement may be weakened to close this gate. Sprint 5 may be implemented and reviewed on its stacked branch, but cannot merge ahead of this dependency.

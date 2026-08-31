@@ -15,9 +15,10 @@ export class ReservationController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.reservations.read");
     return this.reservations.preview(input);
   }
 
@@ -28,9 +29,10 @@ export class ReservationController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.reservations.write");
     return this.reservations.commit(input, principal, idempotencyKey);
   }
 
@@ -41,9 +43,10 @@ export class ReservationController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.reservations.write");
     return this.reservations.createManual(input, principal, idempotencyKey);
   }
 
@@ -54,9 +57,10 @@ export class ReservationController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.reservations.read");
     return this.reservations.listUpcoming(principal, from, to);
   }
 }
