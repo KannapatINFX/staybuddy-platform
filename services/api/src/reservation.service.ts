@@ -46,26 +46,35 @@ export class ReservationService {
   async commit(input: unknown, principal: HotelPrincipal, idempotencyKey?: string) {
     if (!idempotencyKey) throw new AppError("INVALID_REQUEST", 400, false, { field: "Idempotency-Key" });
     const values = CommitInputSchema.parse(input);
-    return withTenantTransaction(
-      this.pool,
-      {
-        hotelId: principal.hotelId,
-        actorId: principal.actorId,
-        traceId: randomUUID(),
-        ...(process.env.TENANT_DATABASE_ROLE ? { databaseRole: process.env.TENANT_DATABASE_ROLE } : {}),
-      },
-      (client) =>
-        executeIdempotent(client, {
+    try {
+      return await withTenantTransaction(
+        this.pool,
+        {
           hotelId: principal.hotelId,
-          key: idempotencyKey,
-          request: values,
-          expiresAt: new Date(Date.now() + 86_400_000),
-          action: async () => ({
-            status: 201,
-            body: await this.persistBatch(client, values, principal, idempotencyKey),
+          actorId: principal.actorId,
+          traceId: randomUUID(),
+        },
+        (client) =>
+          executeIdempotent(client, {
+            hotelId: principal.hotelId,
+            key: idempotencyKey,
+            request: values,
+            expiresAt: new Date(Date.now() + 86_400_000),
+            action: async () => ({
+              status: 201,
+              body: await this.persistBatch(client, values, principal, idempotencyKey),
+            }),
           }),
-        }),
-    );
+      );
+    } catch (error) {
+      if ((error as Error).message === "IDEMPOTENCY_KEY_REUSED") {
+        throw new AppError("IDEMPOTENCY_KEY_REUSED", 409);
+      }
+      if ((error as Error).message === "IDEMPOTENCY_IN_PROGRESS") {
+        throw new AppError("IDEMPOTENCY_IN_PROGRESS", 409, true);
+      }
+      throw error;
+    }
   }
 
   async createManual(input: unknown, principal: HotelPrincipal, idempotencyKey?: string) {
@@ -112,7 +121,6 @@ export class ReservationService {
         hotelId: principal.hotelId,
         actorId: principal.actorId,
         traceId: randomUUID(),
-        ...(process.env.TENANT_DATABASE_ROLE ? { databaseRole: process.env.TENANT_DATABASE_ROLE } : {}),
       },
       async (client) => {
         const result = await client.query<{

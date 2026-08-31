@@ -29,7 +29,7 @@ variable "release_version" {
 }
 variable "application_secret_arn" {
   type        = string
-  description = "Pre-provisioned Secrets Manager JSON secret containing application keys and SENTRY_DSN"
+  description = "Pre-provisioned Secrets Manager JSON secret containing application keys, runtime database password, and SENTRY_DSN"
   validation {
     condition     = can(regex("^arn:aws:secretsmanager:", var.application_secret_arn))
     error_message = "application_secret_arn must be a Secrets Manager ARN"

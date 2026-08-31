@@ -627,7 +627,6 @@ export class IdentityService {
         hotelId,
         actorId,
         traceId: randomUUID(),
-        ...(process.env.TENANT_DATABASE_ROLE ? { databaseRole: process.env.TENANT_DATABASE_ROLE } : {}),
       },
       action,
     );

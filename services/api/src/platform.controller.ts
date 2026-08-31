@@ -18,31 +18,36 @@ export class PlatformController {
   async listHotels(
     @Headers("authorization") authorization?: string,
     @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
   ) {
-    const principal = await this.principals.platform(authorization, debugRole);
-    this.principals.requireRole(principal, ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_SUPPORT"]);
-    return this.platform.listHotels();
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.hotels.read");
+    return this.platform.listHotels(principal);
   }
 
   @Post("ops/hotels")
   async createHotel(
     @Body() input: unknown,
+    @Headers("idempotency-key") idempotencyKey?: string,
     @Headers("authorization") authorization?: string,
     @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
   ) {
-    const principal = await this.principals.platform(authorization, debugRole);
-    this.principals.requireRole(principal, ["STAYBUDDY_SUPER_ADMIN"]);
-    return this.platform.createHotel(input, principal.actorId);
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.hotels.create");
+    return this.platform.createHotel(input, principal, idempotencyKey);
   }
 
   @Post("ops/app-builds")
   async createBuildJob(
     @Body() input: Parameters<PlatformService["createBuildJob"]>[0],
+    @Headers("idempotency-key") idempotencyKey?: string,
     @Headers("authorization") authorization?: string,
     @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
   ) {
-    const principal = await this.principals.platform(authorization, debugRole);
-    this.principals.requireRole(principal, ["STAYBUDDY_SUPER_ADMIN"]);
-    return this.platform.createBuildJob(input, principal.actorId);
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.create");
+    return this.platform.createBuildJob(input, principal, idempotencyKey);
   }
 }

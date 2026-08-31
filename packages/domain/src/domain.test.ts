@@ -4,6 +4,10 @@ import {
   assertGuestLifecycleTransition,
   assertRequestTransition,
   hotelCommerceCommissionMinor,
+  canHotel,
+  canPlatform,
+  isHotelRole,
+  isPlatformRole,
   platformSubscriptionMinor,
 } from "./index.js";
 
@@ -24,5 +28,28 @@ describe("locked domain rules", () => {
     expect(platformSubscriptionMinor(80)).toBe(1_200_000);
     expect(hotelCommerceCommissionMinor(10_000)).toBe(500);
     expect(aiWalletChargeMinor(10_000)).toBe(11_250);
+  });
+
+  it("enforces platform permissions from enumerated roles", () => {
+    expect(isPlatformRole("STAYBUDDY_SUPER_ADMIN")).toBe(true);
+    expect(isPlatformRole("ROOT")).toBe(false);
+    expect(canPlatform("STAYBUDDY_SUPER_ADMIN", "platform.hotels.create")).toBe(true);
+    expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.create")).toBe(false);
+    expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.read")).toBe(true);
+  });
+
+  it("requires department-scoped roles to match the resource department", () => {
+    expect(isHotelRole("DEPARTMENT_AGENT")).toBe(true);
+    expect(isHotelRole("PLATFORM_OWNER")).toBe(false);
+    expect(
+      canHotel({ role: "DEPARTMENT_AGENT", departmentId: "housekeeping" }, "hotel.department-work.manage", {
+        departmentId: "housekeeping",
+      }),
+    ).toBe(true);
+    expect(
+      canHotel({ role: "DEPARTMENT_AGENT", departmentId: "housekeeping" }, "hotel.department-work.manage", {
+        departmentId: "engineering",
+      }),
+    ).toBe(false);
   });
 });

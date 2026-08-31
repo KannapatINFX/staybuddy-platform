@@ -30,15 +30,24 @@ process.env.GUEST_JWT_SECRET = "integration-guest-jwt-secret-at-least-32-bytes";
 process.env.STAFF_JWT_SECRET = "integration-staff-jwt-secret-at-least-32-bytes";
 process.env.ALLOW_TEST_OTP = "true";
 process.env.ALLOW_TEST_OAUTH = "true";
+process.env.ALLOW_DEBUG_AUTH = "true";
+
+const platformActorId = randomUUID();
+const hotelAStaffId = randomUUID();
+const hotelBStaffId = randomUUID();
+const staffByHotel = new Map<string, string>();
 
 function decode<T>(response: { body: string }): T {
   return JSON.parse(response.body) as T;
 }
 
 function hotelHeaders(hotelId: string) {
+  const actorId = staffByHotel.get(hotelId);
+  if (!actorId) throw new Error(`No integration staff configured for hotel ${hotelId}`);
   return {
     "x-debug-hotel-id": hotelId,
     "x-debug-hotel-role": "FRONT_DESK",
+    "x-debug-actor-id": actorId,
   };
 }
 
@@ -53,6 +62,17 @@ describe.sequential("StayBuddy phase-0 API", () => {
     if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required for integration tests");
     adminPool = createDatabasePool();
     await runMigrations(adminPool);
+    await adminPool.query(
+      `INSERT INTO platform_identities (id,subject,email_hash,encrypted_email,status)
+       VALUES ($1,$2,$3,$4,'ACTIVE') ON CONFLICT (id) DO NOTHING`,
+      [platformActorId, `integration:${platformActorId}`, `hash:${platformActorId}`, "encrypted"],
+    );
+    await adminPool.query(
+      `INSERT INTO platform_role_grants (platform_identity_id,role,status,granted_by)
+       VALUES ($1,'STAYBUDDY_SUPER_ADMIN','ACTIVE','integration')
+       ON CONFLICT (platform_identity_id,role) DO UPDATE SET status='ACTIVE'`,
+      [platformActorId],
+    );
     app = await createApp();
     api = app.getHttpAdapter().getInstance() as FastifyInstance;
   });
@@ -78,27 +98,89 @@ describe.sequential("StayBuddy phase-0 API", () => {
   });
 
   it("onboards two isolated hotels and returns a verifiable signed bootstrap", async () => {
-    const create = async (slug: string, displayName: string) => {
+    const create = async (slug: string, displayName: string, idempotencyKey: string) => {
+      const payload = {
+        slug,
+        legalName: `${displayName} Company Limited`,
+        displayName,
+        roomCount: 88,
+        timezone: "Asia/Bangkok",
+        countryCode: "TH",
+      };
       const response = await api.inject({
         method: "POST",
         url: "/v1/ops/hotels",
-        headers: { "x-platform-role": "STAYBUDDY_SUPER_ADMIN" },
-        payload: {
-          slug,
-          legalName: `${displayName} Company Limited`,
-          displayName,
-          roomCount: 88,
-          timezone: "Asia/Bangkok",
-          countryCode: "TH",
+        headers: {
+          "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+          "x-debug-actor-id": platformActorId,
+          "idempotency-key": idempotencyKey,
         },
+        payload,
       });
       expect(response.statusCode).toBe(201);
-      return decode<HotelSetup>(response);
+      return { response: decode<{ body: HotelSetup; replayed: boolean }>(response), payload };
     };
 
-    hotelA = await create(`integration-a-${randomUUID().slice(0, 8)}`, "Integration Hotel A");
-    hotelB = await create(`integration-b-${randomUUID().slice(0, 8)}`, "Integration Hotel B");
+    const hotelAKey = `hotel-create-${randomUUID()}`;
+    const createdA = await create(
+      `integration-a-${randomUUID().slice(0, 8)}`,
+      "Integration Hotel A",
+      hotelAKey,
+    );
+    hotelA = createdA.response.body;
+    const replayA = await api.inject({
+      method: "POST",
+      url: "/v1/ops/hotels",
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": platformActorId,
+        "idempotency-key": hotelAKey,
+      },
+      payload: createdA.payload,
+    });
+    expect(decode<{ body: HotelSetup; replayed: boolean }>(replayA)).toMatchObject({
+      body: { hotelId: hotelA.hotelId },
+      replayed: true,
+    });
+    const mismatchedReplay = await api.inject({
+      method: "POST",
+      url: "/v1/ops/hotels",
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": platformActorId,
+        "idempotency-key": hotelAKey,
+      },
+      payload: { ...createdA.payload, displayName: "Changed replay" },
+    });
+    expect(mismatchedReplay.statusCode).toBe(409);
+    expect(decode<{ code: string }>(mismatchedReplay).code).toBe("IDEMPOTENCY_KEY_REUSED");
+    hotelB = (
+      await create(
+        `integration-b-${randomUUID().slice(0, 8)}`,
+        "Integration Hotel B",
+        `hotel-create-${randomUUID()}`,
+      )
+    ).response.body;
     expect(hotelA.appInstallationKey).not.toBe(hotelB.appInstallationKey);
+    staffByHotel.set(hotelA.hotelId, hotelAStaffId);
+    staffByHotel.set(hotelB.hotelId, hotelBStaffId);
+
+    for (const [staffId, hotelId] of [
+      [hotelAStaffId, hotelA.hotelId],
+      [hotelBStaffId, hotelB.hotelId],
+    ]) {
+      await adminPool.query(
+        `INSERT INTO staff_identities (id,email_hash,encrypted_email,status)
+         VALUES ($1,$2,$3,'ACTIVE') ON CONFLICT (id) DO UPDATE SET status='ACTIVE'`,
+        [staffId, `hash:${staffId}`, "encrypted"],
+      );
+      await adminPool.query(
+        `INSERT INTO hotel_memberships (hotel_id,staff_identity_id,role,status)
+         VALUES ($1,$2,'FRONT_DESK','ACTIVE')
+         ON CONFLICT (hotel_id,staff_identity_id) DO UPDATE SET role='FRONT_DESK',status='ACTIVE'`,
+        [hotelId, staffId],
+      );
+    }
 
     const bootstrap = await api.inject({
       method: "GET",
@@ -110,6 +192,54 @@ describe.sequential("StayBuddy phase-0 API", () => {
     expect(verifyBootstrapManifest(signed, publicKey)).toBe(true);
     expect(signed.manifest.hotelId).toBe(hotelA.hotelId);
     expect(signed.manifest.supportedLocales).toEqual(["en", "th", "zh-CN", "ru"]);
+  });
+
+  it("rejects cross-hotel membership reuse and claimed role elevation", async () => {
+    const crossHotel = await api.inject({
+      method: "GET",
+      url: "/v1/admin/reservations",
+      headers: {
+        "x-debug-hotel-id": hotelB.hotelId,
+        "x-debug-hotel-role": "FRONT_DESK",
+        "x-debug-actor-id": hotelAStaffId,
+      },
+    });
+    expect(crossHotel.statusCode).toBe(403);
+    const elevation = await api.inject({
+      method: "GET",
+      url: "/v1/admin/reservations",
+      headers: {
+        "x-debug-hotel-id": hotelA.hotelId,
+        "x-debug-hotel-role": "HOTEL_OWNER",
+        "x-debug-actor-id": hotelAStaffId,
+      },
+    });
+    expect(elevation.statusCode).toBe(403);
+
+    await adminPool.query(
+      "UPDATE hotel_memberships SET status='SUSPENDED' WHERE hotel_id=$1 AND staff_identity_id=$2",
+      [hotelA.hotelId, hotelAStaffId],
+    );
+    const suspended = await api.inject({
+      method: "GET",
+      url: "/v1/admin/reservations",
+      headers: hotelHeaders(hotelA.hotelId),
+    });
+    expect(suspended.statusCode).toBe(403);
+    await adminPool.query(
+      "UPDATE hotel_memberships SET status='ACTIVE' WHERE hotel_id=$1 AND staff_identity_id=$2",
+      [hotelA.hotelId, hotelAStaffId],
+    );
+
+    const unknownPlatformActor = await api.inject({
+      method: "GET",
+      url: "/v1/ops/hotels",
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": randomUUID(),
+      },
+    });
+    expect(unknownPlatformActor.statusCode).toBe(403);
   });
 
   it("previews, commits and safely replays a mixed reservation import", async () => {

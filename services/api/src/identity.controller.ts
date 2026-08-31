@@ -16,9 +16,10 @@ export class IdentityController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.stay-claims.issue");
     return this.identity.issueStayClaim(stayId, input, principal);
   }
 
@@ -28,9 +29,10 @@ export class IdentityController {
     @Headers("authorization") authorization?: string,
     @Headers("x-debug-hotel-id") hotelId?: string,
     @Headers("x-debug-hotel-role") role?: string,
+    @Headers("x-debug-actor-id") actorId?: string,
   ) {
-    const principal = await this.principals.hotel(authorization, hotelId, role);
-    this.principals.requireRole(principal, ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"]);
+    const principal = await this.principals.hotel(authorization, hotelId, role, actorId);
+    this.principals.requireHotelPermission(principal, "hotel.stay-claims.issue");
     return this.identity.issuePrearrivalInvitation(stayId, principal);
   }
 

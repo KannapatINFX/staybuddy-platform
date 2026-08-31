@@ -2,6 +2,15 @@ import { withExtractedTrace, withSpan } from "@staybuddy/observability";
 
 export type DomainEventJob = {
   eventId: string;
+  hotelId?: string;
+  eventType?: string;
+  schemaVersion?: number;
+  aggregateType?: string;
+  aggregateId?: string;
+  payload?: unknown;
+  correlationId?: string;
+  causationId?: string;
+  commandId?: string;
   traceHeaders?: Record<string, string>;
 };
 

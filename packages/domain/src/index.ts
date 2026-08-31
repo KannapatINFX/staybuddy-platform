@@ -10,6 +10,73 @@ export class DomainRuleError extends Error {
   }
 }
 
+export const platformRoles = [
+  "STAYBUDDY_SUPER_ADMIN",
+  "STAYBUDDY_CONTENT_OPS",
+  "STAYBUDDY_FINANCE",
+  "STAYBUDDY_SUPPORT",
+] as const;
+export type PlatformRole = (typeof platformRoles)[number];
+
+export const hotelRoles = [
+  "HOTEL_OWNER",
+  "HOTEL_ADMIN",
+  "FRONT_DESK",
+  "DEPARTMENT_MANAGER",
+  "DEPARTMENT_AGENT",
+] as const;
+export type HotelRole = (typeof hotelRoles)[number];
+
+export type PlatformPermission =
+  "platform.hotels.read" | "platform.hotels.create" | "platform.app-builds.create";
+export type HotelPermission =
+  | "hotel.reservations.read"
+  | "hotel.reservations.write"
+  | "hotel.stay-claims.issue"
+  | "hotel.department-work.manage";
+
+const platformPermissions: Readonly<Record<PlatformPermission, readonly PlatformRole[]>> = {
+  "platform.hotels.read": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_SUPPORT"],
+  "platform.hotels.create": ["STAYBUDDY_SUPER_ADMIN"],
+  "platform.app-builds.create": ["STAYBUDDY_SUPER_ADMIN"],
+};
+
+const hotelPermissions: Readonly<Record<HotelPermission, readonly HotelRole[]>> = {
+  "hotel.reservations.read": ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"],
+  "hotel.reservations.write": ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"],
+  "hotel.stay-claims.issue": ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"],
+  "hotel.department-work.manage": ["HOTEL_OWNER", "HOTEL_ADMIN", "DEPARTMENT_MANAGER", "DEPARTMENT_AGENT"],
+};
+
+export function isPlatformRole(value: string): value is PlatformRole {
+  return platformRoles.some((role) => role === value);
+}
+
+export function isHotelRole(value: string): value is HotelRole {
+  return hotelRoles.some((role) => role === value);
+}
+
+export function canPlatform(role: PlatformRole, permission: PlatformPermission): boolean {
+  return platformPermissions[permission].includes(role);
+}
+
+export function canHotel(
+  principal: { role: HotelRole; departmentId?: string },
+  permission: HotelPermission,
+  resource?: { departmentId?: string },
+): boolean {
+  if (!hotelPermissions[permission].includes(principal.role)) return false;
+  if (
+    permission === "hotel.department-work.manage" &&
+    (principal.role === "DEPARTMENT_MANAGER" || principal.role === "DEPARTMENT_AGENT")
+  ) {
+    return Boolean(
+      principal.departmentId && resource?.departmentId && principal.departmentId === resource.departmentId,
+    );
+  }
+  return true;
+}
+
 const lifecycleTransitions: Readonly<Record<GuestLifecycle, readonly GuestLifecycle[]>> = {
   RESERVATION_IMPORTED: ["UPCOMING"],
   UPCOMING: ["PRE_ARRIVAL_ACTIVATED", "IN_HOUSE"],
