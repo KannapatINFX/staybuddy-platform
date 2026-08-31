@@ -1,0 +1,141 @@
+name: Deploy Dev
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: staybuddy-deploy-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    name: Validate deploy inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.0
+      - run: terraform -chdir=infra/terraform fmt -check -recursive
+      - run: terraform -chdir=infra/terraform init -backend=false -input=false
+      - run: terraform -chdir=infra/terraform validate
+
+  deploy:
+    name: Deploy API and worker to dev
+    if: ${{ vars.DEV_DEPLOY_ENABLED == 'true' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: dev
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_IN_AUTOMATION: "true"
+      TF_VAR_environment: dev
+      TF_VAR_release_version: ${{ github.sha }}
+      TF_VAR_application_secret_arn: ${{ vars.DEV_APPLICATION_SECRET_ARN }}
+      TF_VAR_application_secret_kms_key_arn: ${{ vars.DEV_APPLICATION_SECRET_KMS_KEY_ARN }}
+      TF_VAR_certificate_arn: ${{ vars.DEV_CERTIFICATE_ARN }}
+      TF_VAR_api_image: bootstrap.invalid/staybuddy-api:${{ github.sha }}
+      TF_VAR_worker_image: bootstrap.invalid/staybuddy-worker:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.0
+          terraform_wrapper: false
+
+      - name: Initialize remote Terraform state
+        run: >-
+          terraform -chdir=infra/terraform init -input=false
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="key=${{ vars.TF_STATE_KEY }}"
+          -backend-config="region=${{ vars.AWS_REGION }}"
+          -backend-config="encrypt=true"
+          -backend-config="use_lockfile=true"
+
+      - name: Bootstrap immutable image repositories
+        run: >-
+          terraform -chdir=infra/terraform apply -input=false -auto-approve
+          -target=aws_ecr_repository.api
+          -target=aws_ecr_repository.worker
+
+      - name: Resolve image repositories
+        id: repositories
+        run: |
+          api_repository=$(terraform -chdir=infra/terraform output -raw api_ecr_repository_url)
+          worker_repository=$(terraform -chdir=infra/terraform output -raw worker_ecr_repository_url)
+          echo "api=$api_repository" >> "$GITHUB_OUTPUT"
+          echo "worker=$worker_repository" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push API image
+        env:
+          REPOSITORY: ${{ steps.repositories.outputs.api }}
+        run: |
+          repository_name=${REPOSITORY##*/}
+          if ! aws ecr describe-images --repository-name "$repository_name" --image-ids "imageTag=$GITHUB_SHA" >/dev/null 2>&1; then
+            docker build --file services/api/Dockerfile --tag "$REPOSITORY:$GITHUB_SHA" .
+            docker push "$REPOSITORY:$GITHUB_SHA"
+          fi
+
+      - name: Build and push worker image
+        env:
+          REPOSITORY: ${{ steps.repositories.outputs.worker }}
+        run: |
+          repository_name=${REPOSITORY##*/}
+          if ! aws ecr describe-images --repository-name "$repository_name" --image-ids "imageTag=$GITHUB_SHA" >/dev/null 2>&1; then
+            docker build --file services/worker/Dockerfile --tag "$REPOSITORY:$GITHUB_SHA" .
+            docker push "$REPOSITORY:$GITHUB_SHA"
+          fi
+
+      - name: Plan immutable release
+        env:
+          TF_VAR_api_image: ${{ steps.repositories.outputs.api }}:${{ github.sha }}
+          TF_VAR_worker_image: ${{ steps.repositories.outputs.worker }}:${{ github.sha }}
+        run: terraform -chdir=infra/terraform plan -input=false -out=dev.tfplan
+
+      - name: Apply immutable release
+        env:
+          TF_VAR_api_image: ${{ steps.repositories.outputs.api }}:${{ github.sha }}
+          TF_VAR_worker_image: ${{ steps.repositories.outputs.worker }}:${{ github.sha }}
+        run: terraform -chdir=infra/terraform apply -input=false -auto-approve dev.tfplan
+
+      - name: Wait for rolling deployment
+        run: aws ecs wait services-stable --cluster staybuddy-dev --services api worker
+
+      - name: Verify health and exported trace
+        env:
+          HEALTH_URL: ${{ vars.DEV_API_HEALTH_URL }}
+        run: |
+          headers=$(mktemp)
+          body=$(mktemp)
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --dump-header "$headers" --output "$body" "$HEALTH_URL"; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              exit 1
+            fi
+            sleep 10
+          done
+          jq -e '.status == "ok" and .database == "reachable"' "$body"
+          trace_id=$(awk 'tolower($1) == "x-trace-id:" {gsub("\\r", "", $2); print $2}' "$headers")
+          echo "$trace_id" | grep -Eq '^[0-9a-f]{32}$'
+          xray_trace_id="1-${trace_id:0:8}-${trace_id:8}"
+          for attempt in $(seq 1 12); do
+            trace_count=$(aws xray batch-get-traces --trace-ids "$xray_trace_id" --query 'length(Traces)' --output text)
+            if [ "$trace_count" -gt 0 ]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1

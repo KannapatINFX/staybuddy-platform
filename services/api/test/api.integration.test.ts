@@ -62,6 +62,21 @@ describe.sequential("StayBuddy phase-0 API", () => {
     await adminPool?.end();
   });
 
+  it("returns database-backed health with safe correlation headers", async () => {
+    const response = await api.inject({
+      method: "GET",
+      url: "/v1/health",
+      headers: { "x-correlation-id": "integration-health-check" },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(decode<{ status: string; database: string }>(response)).toMatchObject({
+      status: "ok",
+      database: "reachable",
+    });
+    expect(response.headers["x-correlation-id"]).toBe("integration-health-check");
+    expect(response.headers["x-trace-id"]).toMatch(/^[A-Za-z0-9-]{1,64}$/);
+  });
+
   it("onboards two isolated hotels and returns a verifiable signed bootstrap", async () => {
     const create = async (slug: string, displayName: string) => {
       const response = await api.inject({

@@ -19,6 +19,39 @@ variable "api_image" {
 variable "worker_image" {
   type = string
 }
+variable "release_version" {
+  type        = string
+  description = "Immutable source revision deployed by CI"
+  validation {
+    condition     = can(regex("^[0-9a-f]{7,40}$", var.release_version))
+    error_message = "release_version must be a 7-40 character Git SHA"
+  }
+}
+variable "application_secret_arn" {
+  type        = string
+  description = "Pre-provisioned Secrets Manager JSON secret containing application keys and SENTRY_DSN"
+  validation {
+    condition     = can(regex("^arn:aws:secretsmanager:", var.application_secret_arn))
+    error_message = "application_secret_arn must be a Secrets Manager ARN"
+  }
+}
+variable "application_secret_kms_key_arn" {
+  type        = string
+  description = "Customer-managed KMS key ARN used by the application secret"
+  validation {
+    condition     = can(regex("^arn:aws:kms:", var.application_secret_kms_key_arn))
+    error_message = "application_secret_kms_key_arn must be a KMS key ARN"
+  }
+}
+variable "otel_collector_image" {
+  type        = string
+  description = "Pinned AWS Distro for OpenTelemetry collector image"
+  default     = "public.ecr.aws/aws-observability/aws-otel-collector:v0.45.0"
+  validation {
+    condition     = !endswith(var.otel_collector_image, ":latest")
+    error_message = "otel_collector_image must use an immutable version tag or digest, never latest"
+  }
+}
 variable "certificate_arn" {
   type        = string
   description = "ACM certificate ARN for the public API HTTPS listener"

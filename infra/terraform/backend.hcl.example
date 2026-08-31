@@ -1,0 +1,5 @@
+bucket       = "replace-with-versioned-terraform-state-bucket"
+key          = "staybuddy/dev/terraform.tfstate"
+region       = "ap-southeast-1"
+encrypt      = true
+use_lockfile = true

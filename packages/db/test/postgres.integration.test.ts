@@ -26,6 +26,11 @@ describeWithDatabase("PostgreSQL tenant boundary", () => {
 
   afterAll(async () => pool?.end());
 
+  it("serializes concurrent forward migration runners", async () => {
+    const results = await Promise.all([runMigrations(pool!), runMigrations(pool!)]);
+    expect(results).toEqual([[], []]);
+  });
+
   it("prevents Hotel A from reading Hotel B", async () => {
     await withTenantTransaction(
       pool!,

@@ -1,6 +1,9 @@
 environment             = "dev"
 api_image               = "000000000000.dkr.ecr.ap-southeast-1.amazonaws.com/staybuddy-api:replace"
 worker_image            = "000000000000.dkr.ecr.ap-southeast-1.amazonaws.com/staybuddy-worker:replace"
+release_version         = "0000000000000000000000000000000000000000"
+application_secret_arn  = "arn:aws:secretsmanager:ap-southeast-1:000000000000:secret:staybuddy/dev/application-replace"
+application_secret_kms_key_arn = "arn:aws:kms:ap-southeast-1:000000000000:key/replace"
 certificate_arn         = "arn:aws:acm:ap-southeast-1:000000000000:certificate/replace"
 api_desired_count       = 1
 worker_desired_count    = 1

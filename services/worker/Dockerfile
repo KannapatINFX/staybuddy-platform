@@ -4,11 +4,11 @@ WORKDIR /workspace
 COPY . .
 RUN pnpm install --frozen-lockfile \
   && pnpm --filter @staybuddy/worker... build \
-  && pnpm --filter @staybuddy/worker deploy --legacy --prod /release
+  && pnpm --filter @staybuddy/worker deploy --prod /release
 
 FROM node:22.22.0-bookworm-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /release/ ./
 USER node
-CMD ["node", "dist/main.js"]
+CMD ["node", "--import", "./dist/instrumentation.js", "dist/main.js"]
