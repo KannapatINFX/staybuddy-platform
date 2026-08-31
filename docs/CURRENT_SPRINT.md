@@ -15,12 +15,13 @@
 - Manual GitHub OIDC deployment bootstraps environment-qualified immutable ECR repositories, applies a saved plan, waits for service stability, validates database-backed health, and requires the health trace to be present in X-Ray.
 - `pnpm ci:verify` passes against a fresh PostgreSQL 17 database, including 32 Sprint 4 structural controls, 21/21 typecheck tasks, 21/21 unit-test tasks, four database integration tests, four API integration groups, 14/14 builds, 15 artifact groups, app-factory validation, and secret scanning.
 - ADR-0005, environment examples, backend example, and deployment/recovery runbook are current.
+- Pull request #2 hosted run `33385277468` passes all four protected checks, including clean-runner Terraform/foundation validation, PostgreSQL integration, API/worker Docker builds, artifact upload, and secret scan. GitHub correctly reports the PR blocked because an independent review is still required.
 
 ## External exit-gate evidence still required
 
 1. Configure the public repository's protected `dev` environment, GitHub OIDC role, versioned state bucket, ACM certificate/DNS, customer KMS key, application secret/Sentry DSN, and health URL.
 2. Set `DEV_DEPLOY_ENABLED=true` only after those controls are reviewed.
 3. Run `Deploy Dev` from the accepted commit and retain the workflow evidence showing API/worker stability, healthy PostgreSQL, 32-hex response trace ID, and a matching X-Ray trace.
-4. Obtain the independent pull-request approval required by protected `main` before merge.
+4. Obtain the independent pull-request approval required by protected `main` before merge; all four hosted checks already pass.
 
 The Sprint 4 exit gate has not yet passed because API and worker have not been deployed to an authorized AWS dev account from CI. Sprint 5 has not started.

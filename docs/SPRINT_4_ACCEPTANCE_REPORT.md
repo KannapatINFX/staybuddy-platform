@@ -49,13 +49,25 @@ Observed evidence:
 - API and worker isolated production layouts import successfully, contain the database migrator, and resolve injected `@staybuddy/*` packages inside their release directories rather than the source workspace.
 - This Mac has no Docker CLI/daemon, so container image execution is not claimed locally; the hosted Build Artifacts job remains the container-build proof.
 
+## Hosted CI evidence
+
+Pull request [#2](https://github.com/KannapatINFX/staybuddy-platform/pull/2) at head commit `f56fb619a60977569f15a8b0e9299340c72b154b` passed all protected checks in [run 33385277468](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33385277468) on 31 August 2026:
+
+- `Required / Quality`: PASS in 1m27s, including Terraform validation and all 32 foundation controls.
+- `Required / Migrations & Integration`: PASS in 1m02s against clean PostgreSQL/Redis services, including database 4/4 and API 4/4.
+- `Required / Build Artifacts`: PASS in 3m30s, including both production Docker image builds.
+- `Required / Secret Scan`: PASS in 33s.
+- Artifact `staybuddy-build-795b58c9f2bd4d1406a05e4ce009ee71a70cb7bb` (ID `9755415734`, 78,464,082 bytes) is retained through 7 September 2026.
+
+GitHub reports the PR `BLOCKED` with `REVIEW_REQUIRED`, proving the protected one-approval rule remains enforced.
+
 ## Exit-gate decision
 
-The code and reproducible local evidence satisfy the implementation portion of Sprint 4. The source exit gate specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time.
+The code, local evidence, hosted CI, and container builds satisfy every repository-controlled portion of Sprint 4. The source exit gate specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time.
 
 Therefore Sprint 4 is **CONDITIONAL**, not complete. It becomes complete only when:
 
-1. the Sprint 4 pull request passes all four protected hosted checks and receives the required independent approval;
+1. pull request #2 receives the required independent approval (all four protected hosted checks already pass);
 2. the accepted commit is deployed by `Deploy Dev` to an authorized AWS dev environment; and
 3. retained workflow evidence proves stable API/worker services, PostgreSQL-backed health, a valid response trace ID, and the matching X-Ray trace.
 
