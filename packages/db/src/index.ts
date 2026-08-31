@@ -16,42 +16,49 @@ export function createDatabasePool(connectionString = process.env.DATABASE_URL):
 }
 
 export async function runMigrations(pool: DatabasePool): Promise<string[]> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS app_schema_migrations (
-      name text PRIMARY KEY,
-      sha256 text NOT NULL,
-      applied_at timestamptz NOT NULL DEFAULT now()
-    )
-  `);
-  const migrationDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../migrations");
-  const names = (await readdir(migrationDirectory)).filter((name) => name.endsWith(".sql")).sort();
+  const client = await pool.connect();
   const applied: string[] = [];
-  for (const name of names) {
-    const sql = await readFile(path.join(migrationDirectory, name), "utf8");
-    const sha256 = createHash("sha256").update(sql).digest("hex");
-    const existing = await pool.query<{ sha256: string }>(
-      "SELECT sha256 FROM app_schema_migrations WHERE name = $1",
-      [name],
-    );
-    if (existing.rowCount) {
-      if (existing.rows[0]?.sha256 !== sha256) throw new Error(`MIGRATION_CHANGED:${name}`);
-      continue;
-    }
-    const client = await pool.connect();
-    try {
+  try {
+    await client.query("SELECT pg_advisory_lock($1, $2)", [1398034754, 1296388681]);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS app_schema_migrations (
+        name text PRIMARY KEY,
+        sha256 text NOT NULL,
+        applied_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
+    const migrationDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../migrations");
+    const names = (await readdir(migrationDirectory)).filter((name) => name.endsWith(".sql")).sort();
+    for (const name of names) {
+      const sql = await readFile(path.join(migrationDirectory, name), "utf8");
+      const sha256 = createHash("sha256").update(sql).digest("hex");
+      const existing = await client.query<{ sha256: string }>(
+        "SELECT sha256 FROM app_schema_migrations WHERE name = $1",
+        [name],
+      );
+      if (existing.rowCount) {
+        if (existing.rows[0]?.sha256 !== sha256) throw new Error(`MIGRATION_CHANGED:${name}`);
+        continue;
+      }
       await client.query("BEGIN");
-      await client.query(sql);
-      await client.query("INSERT INTO app_schema_migrations (name, sha256) VALUES ($1, $2)", [name, sha256]);
-      await client.query("COMMIT");
-      applied.push(name);
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
+      try {
+        await client.query(sql);
+        await client.query("INSERT INTO app_schema_migrations (name, sha256) VALUES ($1, $2)", [
+          name,
+          sha256,
+        ]);
+        await client.query("COMMIT");
+        applied.push(name);
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      }
     }
+    return applied;
+  } finally {
+    await client.query("SELECT pg_advisory_unlock($1, $2)", [1398034754, 1296388681]);
+    client.release();
   }
-  return applied;
 }
 
 export async function withTenantTransaction<T>(

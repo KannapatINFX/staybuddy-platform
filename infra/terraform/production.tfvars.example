@@ -1,0 +1,11 @@
+environment                    = "production"
+api_image                      = "000000000000.dkr.ecr.ap-southeast-1.amazonaws.com/staybuddy-production-api:replace"
+worker_image                   = "000000000000.dkr.ecr.ap-southeast-1.amazonaws.com/staybuddy-production-worker:replace"
+release_version                = "0000000000000000000000000000000000000000"
+application_secret_arn         = "arn:aws:secretsmanager:ap-southeast-1:000000000000:secret:staybuddy/production/application-replace"
+application_secret_kms_key_arn = "arn:aws:kms:ap-southeast-1:000000000000:key/replace"
+certificate_arn                = "arn:aws:acm:ap-southeast-1:000000000000:certificate/replace"
+api_desired_count              = 2
+worker_desired_count           = 2
+database_instance_class        = "db.r7g.large"
+redis_node_type                = "cache.r7g.large"

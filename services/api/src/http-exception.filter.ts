@@ -2,13 +2,14 @@ import type { ArgumentsHost } from "@nestjs/common";
 import { Catch, HttpException, type ExceptionFilter } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 import { randomUUID } from "node:crypto";
+import { captureException, currentTraceId } from "@staybuddy/observability";
 import { AppError } from "./errors.js";
 
 @Catch()
 export class SafeHttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const reply = host.switchToHttp().getResponse<FastifyReply>();
-    const traceId = reply.request.id || randomUUID();
+    const traceId = currentTraceId() ?? reply.request.id ?? randomUUID();
     if (exception instanceof AppError) {
       void reply.status(exception.status).send({
         code: exception.code,
@@ -28,6 +29,7 @@ export class SafeHttpExceptionFilter implements ExceptionFilter {
       routine?: string;
       stack?: string;
     };
+    captureException(exception, { service: "staybuddy-api", traceId });
     console.error(
       JSON.stringify({
         level: "error",

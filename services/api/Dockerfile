@@ -4,7 +4,7 @@ WORKDIR /workspace
 COPY . .
 RUN pnpm install --frozen-lockfile \
   && pnpm --filter @staybuddy/api... build \
-  && pnpm --filter @staybuddy/api deploy --legacy --prod /release
+  && pnpm --filter @staybuddy/api deploy --prod /release
 
 FROM node:22.22.0-bookworm-slim AS runtime
 ENV NODE_ENV=production
@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=build /release/ ./
 USER node
 EXPOSE 4000
-CMD ["node", "dist/main.js"]
+CMD ["node", "--import", "./dist/instrumentation.js", "dist/main.js"]

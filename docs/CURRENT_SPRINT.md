@@ -1,24 +1,26 @@
 # Current Sprint
 
-**Sprint:** 3 — Target Monorepo and Engineering System
+**Sprint:** 4 — Environments, Infrastructure, and Observability Baseline
 
-**Status:** COMPLETE — accepted 31 August 2026
+**Status:** CONDITIONAL — implementation and local verification pass; hosted dev deployment is externally gated
 
 **Updated:** 31 August 2026
 
-## Completed and verified
+## Completed and verified locally
 
-- The 14-workspace pnpm/Turbo graph contains mobile, three portals, API, worker, and all eight shared packages from the Developer Blueprint.
-- Formatting, lint, dependency, fixture, OpenAPI drift, typecheck, unit, migration, PostgreSQL integration, build, artifact, app-factory, and source-secret gates pass through `pnpm ci:verify`.
-- Every workspace has an executed unit test; database and API integration harnesses run against a disposable PostgreSQL database.
-- GitHub Actions defines four stable required checks, produces build artifacts, validates fresh migrations, builds API/worker containers, and scans the source tree for credentials.
-- ADR, engineering policy, runbook, current-status, decision-log, and synthetic fixture structures are present.
-- Public GitHub repository `KannapatINFX/staybuddy-platform` exists with reviewed history on protected `main`.
-- Pull request #1 proves the minimal fixture change on hosted GitHub Actions. Run `33378806879` passed all four stable checks and uploaded build artifact `staybuddy-build-303669d4ace320a56d904945e377e619c83a4459`.
-- Branch protection requires the four exact checks, an up-to-date pull request, one approval for future changes, stale-review dismissal, conversation resolution, linear history, and blocks administrator bypass, force-push, and deletion.
+- Terraform validates reproducible dev, staging, and production foundations for VPC/networking, ECS Fargate, RDS PostgreSQL, encrypted Redis, private S3/CloudFront, ALB/WAF/TLS, KMS, ECR, CloudWatch logs, and alarms.
+- Application secrets remain in a pre-provisioned customer-KMS-encrypted Secrets Manager JSON secret; RDS manages its own credential secret. Neither value set enters Terraform state or GitHub.
+- API and worker preload OpenTelemetry, emit X-Ray-compatible trace IDs over OTLP to ADOT sidecars, propagate worker trace context, expose safe response trace/correlation IDs, and capture unhandled errors in Sentry without default PII.
+- Immutable production layouts contain copied workspace packages. ECS migration prerequisite containers serialize forward migrations before API/worker startup, and deployment circuit breakers roll back unhealthy releases.
+- Manual GitHub OIDC deployment bootstraps environment-qualified immutable ECR repositories, applies a saved plan, waits for service stability, validates database-backed health, and requires the health trace to be present in X-Ray.
+- `pnpm ci:verify` passes against a fresh PostgreSQL 17 database, including 32 Sprint 4 structural controls, 21/21 typecheck tasks, 21/21 unit-test tasks, four database integration tests, four API integration groups, 14/14 builds, 15 artifact groups, app-factory validation, and secret scanning.
+- ADR-0005, environment examples, backend example, and deployment/recovery runbook are current.
 
-## Exit gate
+## External exit-gate evidence still required
 
-The Sprint 3 exit gate passed. PR #1 was blocked while its final required checks were pending, then merged after all four checks passed. The final protected-branch configuration was verified after merge.
+1. Configure the public repository's protected `dev` environment, GitHub OIDC role, versioned state bucket, ACM certificate/DNS, customer KMS key, application secret/Sentry DSN, and health URL.
+2. Set `DEV_DEPLOY_ENABLED=true` only after those controls are reviewed.
+3. Run `Deploy Dev` from the accepted commit and retain the workflow evidence showing API/worker stability, healthy PostgreSQL, 32-hex response trace ID, and a matching X-Ray trace.
+4. Obtain the independent pull-request approval required by protected `main` before merge.
 
-Sprint 4 is next in sequence but has not started.
+The Sprint 4 exit gate has not yet passed because API and worker have not been deployed to an authorized AWS dev account from CI. Sprint 5 has not started.

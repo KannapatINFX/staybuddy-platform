@@ -18,15 +18,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.0
       - run: pnpm ci:quality
 
   migrations-and-integration:
@@ -64,11 +67,11 @@ jobs:
       ALLOW_TEST_OTP: "true"
       ALLOW_TEST_OAUTH: "true"
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.0
           cache: pnpm
@@ -82,11 +85,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.0
           cache: pnpm
@@ -96,7 +99,7 @@ jobs:
       - run: pnpm app-factory:validate
       - run: docker build --tag staybuddy-api:${{ github.sha }} --file services/api/Dockerfile .
       - run: docker build --tag staybuddy-worker:${{ github.sha }} --file services/worker/Dockerfile .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: staybuddy-build-${{ github.sha }}
           if-no-files-found: error
@@ -117,11 +120,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.22.0
           cache: pnpm
