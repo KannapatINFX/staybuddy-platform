@@ -2,6 +2,7 @@
   "fixtureVersion": 1,
   "classification": "SYNTHETIC",
   "purpose": "Sprint 3 CI smoke fixture",
+  "ciProof": "hosted-pull-request",
   "tenants": [
     {
       "hotelId": "00000000-0000-4000-8000-00000000000a",
