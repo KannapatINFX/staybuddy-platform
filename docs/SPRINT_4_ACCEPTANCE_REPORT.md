@@ -13,7 +13,7 @@
 - `../../agent.md`, including precedence, target architecture, Definition of Done, release gates, and decision protocol.
 - `../../STAYBUDDY_MASTER_EXECUTION_PLAN.md`, Sprint 4 goal, deliverables, dependencies, and exit gate.
 - `../../Code Aug/StayBuddy_Developer_Blueprint_v1_0_2026-08-28.md`, environment, AWS, delivery, observability, recovery, and performance contracts.
-- ADR-0001 through ADR-0005.
+- ADR-0001 through ADR-0006.
 
 ## Deliverable assessment
 
@@ -24,6 +24,7 @@
 | Secret policy             | Application secret is external customer-KMS-encrypted JSON; Terraform/GitHub carry ARNs only; ECS execution role reads only named secret/key resources                                                     | PASS locally                   |
 | Safe release              | Workspace dependencies are injected into isolated pnpm deploy layouts; immutable SHA images; migration prerequisite containers with PostgreSQL advisory lock; ECS circuit breaker rollback                 | PASS locally                   |
 | Observability             | API/worker preload OTel; X-Ray ID generation; OTLP/ADOT export; HTTP/job propagation; response trace/correlation headers; Sentry error-only baseline without default PII                                   | PASS locally                   |
+| Web hosting boundary      | ADR-0006 keeps public/frontend-only web delivery, DNS, and email on Hostinger Business while AWS remains the trusted backend/data/queue/object/secret/observability plane                                  | ACCEPTED                       |
 | CI deployment             | Manual OIDC workflow validates Terraform, bootstraps ECR, reuses immutable tags, applies a saved plan, waits for ECS, verifies PostgreSQL health and requires a matching X-Ray trace                       | IMPLEMENTED; cloud run pending |
 
 ## Reproducible local evidence
@@ -63,7 +64,7 @@ GitHub reports the PR `BLOCKED` with `REVIEW_REQUIRED`, proving the protected on
 
 ## Exit-gate decision
 
-The code, local evidence, hosted CI, and container builds satisfy every repository-controlled portion of Sprint 4. The source exit gate specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time. The closure audit also confirmed that this workstation has no AWS CLI/profile or AWS/Terraform/Sentry credentials, both available browser sessions reach provider sign-in pages, the GitHub repository has no Actions variables or secrets, and it has no configured environments.
+The code, local evidence, hosted CI, container builds, and accepted Hostinger/AWS boundary satisfy every repository-controlled portion of Sprint 4. Hostinger frontend deployment does not replace or weaken the source exit gate, which specifically requires API and worker to deploy to dev from CI with traceable health checks. No AWS account configuration, OIDC deploy role, remote-state bucket, ACM certificate/DNS, customer KMS/application secret, Sentry DSN, dev health URL, or independent reviewer is configured in the repository at review time. The closure audit also confirmed that this workstation has no AWS CLI/profile or AWS/Terraform/Sentry credentials, both available browser sessions reach provider sign-in pages, the GitHub repository has no Actions variables or secrets, and it has no configured environments.
 
 Therefore Sprint 4 is **CONDITIONAL**, not complete. It becomes complete only when:
 

@@ -11,6 +11,15 @@
 
 Terraform examples are `infra/terraform/{dev,staging,production}.tfvars.example`. They contain placeholders only. Never commit real account IDs, secret values, certificates, state configuration, or tenant data.
 
+## Hosting boundary
+
+- Hostinger Business Web Hosting serves the public website and eligible frontend-only Next.js portals during MVP/pilot. It may continue to manage domain DNS and email.
+- AWS `ap-southeast-1` remains the trusted runtime for API, worker, PostgreSQL/pgvector, Redis/BullMQ, canonical object storage, imports/exports, secrets, audit, logs, metrics, and traces.
+- Hostinger receives only public browser configuration such as the HTTPS API origin and release identifier. Never add database credentials, Redis endpoints, AWS credentials, signing keys, tenant-wide secrets, or direct storage authority to a Hostinger web application.
+- Prefer static/client-rendered portal shells. Privileged operations and tenant resolution terminate at the AWS API; exact frontend origins must be reviewed in API CORS and CSP configuration.
+- Do not delete or replace an existing Hostinger website, domain, email service, or DNS record without an inventory, backup where applicable, reviewed change set, previous-value record, and rollback plan.
+- Each portal's first deployment and rollback evidence belongs to the sprint that introduces its usable journey. The Sprint 4 gate remains the AWS API/worker dev deployment and traceable health check.
+
 ## One-time AWS and GitHub setup
 
 1. In `ap-southeast-1`, provision a versioned, encrypted S3 Terraform-state bucket with public access blocked. The deploy role must be able to use S3 native lockfiles.
@@ -67,6 +76,7 @@ The manual `Deploy Dev` workflow authenticates with short-lived OIDC credentials
 - Run `terraform -chdir=infra/terraform fmt -check -recursive` and `terraform -chdir=infra/terraform validate` before plan/apply.
 - Production app profiles must reject placeholder assets and `example.invalid` URLs.
 - Confirm app package identifiers, signed bootstrap identity, minimum version, privacy URLs, OAuth audience/client IDs, email sender, APNs/FCM, store signing, DNS, and ACM certificate for the same tenant/environment.
+- Confirm Hostinger frontend release origin, API origin, CSP/CORS allowlist, public-only environment variables, rollback target, and DNS previous values when a portal is part of the release.
 - Never treat successful synthetic Expo exports as signed store-build approval; complete native device QA and store credential checks first.
 
 ## Sprint 1-10 evidence

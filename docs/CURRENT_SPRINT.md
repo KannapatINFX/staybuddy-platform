@@ -4,7 +4,7 @@
 
 **Status:** CONDITIONAL — implementation and local verification pass; hosted dev deployment is externally gated
 
-**Updated:** 31 August 2026
+**Updated:** 1 September 2026
 
 ## Completed and verified locally
 
@@ -14,8 +14,9 @@
 - Immutable production layouts contain copied workspace packages. ECS migration prerequisite containers serialize forward migrations before API/worker startup, and deployment circuit breakers roll back unhealthy releases.
 - Manual GitHub OIDC deployment bootstraps environment-qualified immutable ECR repositories, applies a saved plan, waits for service stability, validates database-backed health, and requires the health trace to be present in X-Ray.
 - `pnpm ci:verify` passes against a fresh PostgreSQL 17 database, including 32 Sprint 4 structural controls, 21/21 typecheck tasks, 21/21 unit-test tasks, four database integration tests, four API integration groups, 14/14 builds, 15 artifact groups, app-factory validation, and secret scanning.
-- ADR-0005, environment examples, backend example, and deployment/recovery runbook are current.
-- Pull request #2 hosted run `33385277468` passes all four protected checks, including clean-runner Terraform/foundation validation, PostgreSQL integration, API/worker Docker builds, artifact upload, and secret scan. GitHub correctly reports the PR blocked because an independent review is still required.
+- ADR-0005 fixes the AWS backend foundation and ADR-0006 fixes the Hostinger frontend/AWS backend boundary; environment examples, backend example, and deployment/recovery runbook are current.
+- Hostinger Business Web Hosting is reserved for the public website and frontend-only portals. AWS remains authoritative for API, worker, PostgreSQL/pgvector, Redis/BullMQ, canonical object storage, secrets, audit, and observability; the hosting decision does not weaken this sprint's AWS deployment gate.
+- Pull request #2 passes all four protected checks, including clean-runner Terraform/foundation validation, PostgreSQL integration, API/worker Docker builds, artifact upload, and secret scan. GitHub correctly reports the PR blocked because an independent review is still required.
 
 ## External exit-gate evidence still required
 
