@@ -11,6 +11,10 @@ Configure the repository's `main` branch or ruleset to require the following exa
 
 Also require a pull request, one approving review, resolution of review conversations, dismissal of stale approvals after new commits, the branch to be up to date, linear history, and blocked force-push/deletion. Administrators should not bypass these controls for normal delivery.
 
+## Single-maintainer bootstrap
+
+For repository bootstrap only, PR #1 used zero required approvals because the sole repository owner cannot approve their own pull request. All status, freshness, conversation, history, administrator, force-push, and deletion controls remained enforced. Immediately after the bootstrap merge, the final rule must be raised to one required approval. This exception does not apply to subsequent pull requests.
+
 ## Verification
 
 1. Open a pull request containing a harmless fixture-only change.

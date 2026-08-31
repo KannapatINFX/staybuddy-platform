@@ -25,4 +25,4 @@ Project rules live in `../agent.md`. Current sprint evidence and runbooks live u
 ## Sprint status
 
 Sprints 1 and 2 are accepted complete; see `../docs/migration/SPRINT_1_COMPLETION_REPORT.md` and
-`../docs/product/SPRINT_2_COMPLETION_REPORT.md`. Sprint 3 is active with local and hosted CI verified, but it remains CONDITIONAL until protected `main` is available and verified; see `docs/SPRINT_3_ACCEPTANCE_REPORT.md`. Implementation already present for Sprint 4-10 is provisional and must be reviewed in sequence. The historical command evidence remains in `docs/SPRINT_1_10_RELEASE_EVIDENCE.md`, but it is not the authoritative completion record.
+`../docs/product/SPRINT_2_COMPLETION_REPORT.md`. Sprint 3 is accepted complete with local and hosted CI, build artifact, and protected `main` verified; see `docs/SPRINT_3_ACCEPTANCE_REPORT.md`. Sprint 4 is next but has not started. Implementation already present for Sprint 4-10 is provisional and must be reviewed in sequence. The historical command evidence remains in `docs/SPRINT_1_10_RELEASE_EVIDENCE.md`, but it is not the authoritative completion record.

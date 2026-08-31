@@ -2,7 +2,7 @@
 
 **Sprint:** 3 — Target Monorepo and Engineering System
 
-**Status:** CONDITIONAL — local and hosted CI verified; protected `main` remains open
+**Status:** COMPLETE — accepted 31 August 2026
 
 **Updated:** 31 August 2026
 
@@ -13,11 +13,12 @@
 - Every workspace has an executed unit test; database and API integration harnesses run against a disposable PostgreSQL database.
 - GitHub Actions defines four stable required checks, produces build artifacts, validates fresh migrations, builds API/worker containers, and scans the source tree for credentials.
 - ADR, engineering policy, runbook, current-status, decision-log, and synthetic fixture structures are present.
-- Private GitHub repository `KannapatINFX/staybuddy-platform` exists with reviewed history on `main`.
-- Pull request #1 proves the minimal fixture change on hosted GitHub Actions. Run `33378014800` passed all four stable checks and uploaded build artifact `staybuddy-build-36324eb39490b9b1cad09b492437beb9250c332b`.
+- Public GitHub repository `KannapatINFX/staybuddy-platform` exists with reviewed history on protected `main`.
+- Pull request #1 proves the minimal fixture change on hosted GitHub Actions. Run `33378806879` passed all four stable checks and uploaded build artifact `staybuddy-build-303669d4ace320a56d904945e377e619c83a4459`.
+- Branch protection requires the four exact checks, an up-to-date pull request, one approval for future changes, stale-review dismissal, conversation resolution, linear history, and blocks administrator bypass, force-push, and deletion.
 
-## Open exit gate
+## Exit gate
 
-GitHub returned HTTP 403 when applying the required `main` protection because the private repository is owned by an account on GitHub Free. The repository must remain private unless the owner explicitly authorizes public visibility; otherwise GitHub Pro is required to enable the protection gate.
+The Sprint 3 exit gate passed. PR #1 was blocked while its final required checks were pending, then merged after all four checks passed. The final protected-branch configuration was verified after merge.
 
-Do not begin or accept Sprint 4 until branch protection is applied and verified, PR #1 is merged through the protected flow, and the Sprint 3 acceptance report is promoted from CONDITIONAL to COMPLETE.
+Sprint 4 is next in sequence but has not started.
