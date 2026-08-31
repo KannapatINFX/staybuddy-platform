@@ -4,9 +4,9 @@
 
 **Review date:** 31 August 2026
 
-**Status:** CONDITIONAL — implementation and local CI parity pass; hosted CI exit gate not yet proven
+**Status:** COMPLETE — implementation, local parity, hosted CI, build artifact, and protected `main` verified
 
-**Next sprint:** Not authorized
+**Next sprint:** Sprint 4 — not started
 
 ## Source reviewed
 
@@ -17,12 +17,12 @@
 
 ## Deliverable assessment
 
-| Deliverable                   | Evidence                                                                                                                                                                                                      | Result                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Target monorepo               | 4 apps, 2 services, 8 shared packages; pnpm/Turbo graph validates all 14 names and required scripts                                                                                                           | PASS                            |
-| Engineering quality system    | Prettier, ESLint, strict TypeScript, 24 unit assertions across all 14 workspaces, 6 PostgreSQL/API integration cases, OpenAPI generation/drift, fixture, dependency, migration, artifact, and secret policies | PASS                            |
-| CI pipeline                   | `.github/workflows/ci.yml` defines Quality, Migrations & Integration, Build Artifacts, and Secret Scan; build outputs and API/worker Dockerfiles are gated                                                    | IMPLEMENTED; HOSTED RUN PENDING |
-| ADR/runbook/fixture structure | Canonical ADR ledger plus target ADR index, dependency policy, foundation and branch-protection runbooks, decision log, current sprint record, synthetic fixture policy and fixture                           | PASS                            |
+| Deliverable                   | Evidence                                                                                                                                                                                                      | Result |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Target monorepo               | 4 apps, 2 services, 8 shared packages; pnpm/Turbo graph validates all 14 names and required scripts                                                                                                           | PASS   |
+| Engineering quality system    | Prettier, ESLint, strict TypeScript, 24 unit assertions across all 14 workspaces, 6 PostgreSQL/API integration cases, OpenAPI generation/drift, fixture, dependency, migration, artifact, and secret policies | PASS   |
+| CI pipeline                   | `.github/workflows/ci.yml` defines Quality, Migrations & Integration, Build Artifacts, and Secret Scan; PR #1 run `33378806879` passed all four jobs and uploaded the build artifact                          | PASS   |
+| ADR/runbook/fixture structure | Canonical ADR ledger plus target ADR index, dependency policy, foundation and branch-protection runbooks, decision log, current sprint record, synthetic fixture policy and fixture                           | PASS   |
 
 ## Reproducible local evidence
 
@@ -51,14 +51,24 @@ Observed evidence:
 
 The local machine did not have a Docker daemon, so the two container builds are defined in the Build Artifacts CI job but are not claimed as locally executed in this review.
 
+## Hosted CI evidence
+
+The public repository is `KannapatINFX/staybuddy-platform`. Pull request [#1](https://github.com/KannapatINFX/staybuddy-platform/pull/1) contains the synthetic fixture proof, clean-runner integration correction, and final Sprint 3 evidence.
+
+- Reviewed head commit before final acceptance documentation: `eeb2420c97553278415c321deed603d8df98b90c`.
+- Passing workflow: [run 33378806879](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33378806879), triggered by `pull_request` on 31 August 2026.
+- `Required / Quality`: PASS in 1m48s.
+- `Required / Migrations & Integration`: PASS in 1m09s against the workflow PostgreSQL service.
+- `Required / Build Artifacts`: PASS in 5m42s, including all workspace builds and successful API and worker Docker builds.
+- `Required / Secret Scan`: PASS in 37s.
+- Artifact `staybuddy-build-303669d4ace320a56d904945e377e619c83a4459` (artifact ID `9753077966`, 78,462,612 bytes) was uploaded from the GitHub-generated merge commit and retained through 7 September 2026.
+
+The first proof run exposed that the integration command depended on locally prebuilt workspace outputs. Commit `be7fb1a` corrected the command to build the API dependency graph before integration tests; the passing run above proves the correction on a clean GitHub runner.
+
 ## Exit-gate decision
 
-The Sprint 3 exit gate is not yet satisfied because the target repository has no commit or remote and therefore no hosted GitHub Actions run exists. Sprint 3 remains active and Sprint 4 must not start.
+The owner explicitly authorized public visibility on 31 August 2026. The repository was changed to public and `main` branch protection was applied with strict/up-to-date status checks, the four exact required contexts, pull-request-only changes, stale-review dismissal, conversation resolution, linear history, administrator enforcement, and force-push/deletion disabled.
 
-To promote Sprint 3 to COMPLETE:
+PR #1 was used as the single-maintainer bootstrap proof. Approval count was temporarily zero while all other protection requirements were enforced; while its final checks were pending GitHub reported the PR as blocked. After all four checks passed, the PR was merged through the protected flow and the final rule was raised to one required approval for future pull requests.
 
-1. Obtain authorization for the GitHub owner and private repository destination.
-2. Create the initial reviewed commit and push `main`.
-3. Apply the protection settings in `docs/runbooks/BRANCH_PROTECTION.md`.
-4. Open a minimal fixture-only pull request and record its commit SHA, workflow URL, four passing checks, and build artifact in this report.
-5. Re-run `tools/verify-sprint3-engineering-system.mjs`, change canonical status to COMPLETE, and only then make Sprint 4 next.
+Sprint 3 is complete. Sprint 4 is next in sequence but has not started.

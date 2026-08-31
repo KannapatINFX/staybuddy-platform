@@ -22,7 +22,7 @@
     "secrets:check": "node scripts/scan-secrets.mjs",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:integration": "pnpm --filter @staybuddy/db test:integration && pnpm --filter @staybuddy/api test:integration",
+    "test:integration": "pnpm --filter @staybuddy/api... build && pnpm --filter @staybuddy/db test:integration && pnpm --filter @staybuddy/api test:integration",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "contracts:generate": "pnpm --filter @staybuddy/contracts generate:openapi",
     "contracts:check": "pnpm --filter @staybuddy/contracts check:openapi && pnpm --filter @staybuddy/contracts test",
