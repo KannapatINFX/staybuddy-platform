@@ -4,7 +4,7 @@
 
 **Review date:** 1 September 2026
 
-**Status:** CONDITIONAL — implementation and the complete local exit gate pass; stacked protected-PR evidence and the Sprint 4 dependency gate remain
+**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; independent approval and the Sprint 4 dependency gate remain
 
 **Next sprint:** Sprint 6 — not started
 
@@ -48,10 +48,22 @@ Observed evidence:
 - Terraform validation, OpenAPI/contract checks, dependency/fixture policy, app-factory validation, and secret scanning pass.
 - No production data, Hostinger configuration, AWS resource, provider credential, or legacy tracked file was accessed or changed.
 
+## Hosted CI evidence
+
+Stacked pull request [#3](https://github.com/KannapatINFX/staybuddy-platform/pull/3) at implementation commit `e42c9c09b079703ac91012980635830320fae4cb` passed all four checks in [run 33425464616](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33425464616) on 1 September 2026:
+
+- `Required / Quality`: PASS in 1m28s, including all 27 Sprint 5 controls and 32 Sprint 4 controls.
+- `Required / Migrations & Integration`: PASS in 1m00s against clean PostgreSQL/Redis services.
+- `Required / Build Artifacts`: PASS in 3m47s, including API and worker production Docker images.
+- `Required / Secret Scan`: PASS in 36s.
+- Artifact `staybuddy-build-13c5e2e0de93170a068b1479ab7e1e444307bd78` (ID `9770662273`, 78,518,169 bytes) is retained through 7 September 2026.
+
+The PR intentionally targets the Sprint 4 feature branch, so GitHub does not apply `main`'s independent-review rule to this intermediate stack. It must be retargeted/rebased after Sprint 4 merges and then pass protected-main review and checks.
+
 ## Exit-gate decision
 
-Every repository-controlled Sprint 5 exit-gate behavior passes locally and is now release-blocking through `ci:quality`/`ci:verify`. ADR-0007 and the tenant-security runbook record the architecture, deployment identity separation, incident response, and dead-letter recovery procedure.
+Every repository-controlled Sprint 5 exit-gate behavior passes locally and in hosted CI and is release-blocking through `ci:quality`/`ci:verify`. ADR-0007 and the tenant-security runbook record the architecture, deployment identity separation, incident response, and dead-letter recovery procedure.
 
-Sprint 5 is nevertheless **CONDITIONAL**, not complete, because this branch is intentionally stacked on the unmerged Sprint 4 implementation. It may not merge to `main` before the Sprint 4 protected review and authorized AWS dev deployment gate are satisfied. The Sprint 5 protected PR must also pass all four hosted checks and receive the required independent approval; branch protection may not be weakened.
+Sprint 5 is nevertheless **CONDITIONAL**, not complete, because this branch is intentionally stacked on the unmerged Sprint 4 implementation. It may not merge to `main` before the Sprint 4 protected review and authorized AWS dev deployment gate are satisfied. After that dependency merges, Sprint 5 must be retargeted/rebased, rerun all protected checks, and receive the required independent approval; branch protection may not be weakened.
 
 Sprint 6 has not started. Existing Sprint 6-10 files remain provisional until their ordered source review and acceptance.
