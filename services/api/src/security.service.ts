@@ -1,4 +1,4 @@
-import { createCipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import { jwtVerify, SignJWT } from "jose";
 import { AppError } from "./errors.js";
@@ -22,6 +22,23 @@ export class SecurityService {
     const cipher = createCipheriv("aes-256-gcm", key, iv);
     const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
     return [iv, cipher.getAuthTag(), encrypted].map((item) => item.toString("base64url")).join(".");
+  }
+
+  decryptPii(value: string): string {
+    const key = Buffer.from(this.required("PII_ENCRYPTION_KEY_BASE64"), "base64");
+    if (key.length !== 32) throw new AppError("INTERNAL_ERROR", 500);
+    const [ivValue, tagValue, encryptedValue] = value.split(".");
+    if (!ivValue || !tagValue || !encryptedValue) throw new AppError("INTERNAL_ERROR", 500);
+    try {
+      const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivValue, "base64url"));
+      decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
+      return Buffer.concat([
+        decipher.update(Buffer.from(encryptedValue, "base64url")),
+        decipher.final(),
+      ]).toString("utf8");
+    } catch {
+      throw new AppError("INTERNAL_ERROR", 500);
+    }
   }
 
   otpHash(challengeId: string, code: string): Buffer {

@@ -1,27 +1,26 @@
 # Current Sprint
 
-**Sprint:** 5 — Core Database, Tenant Boundary, Audit, Outbox, and Idempotency
+**Sprint:** 6 — Hotel Onboarding and Remote Tenant Configuration
 
-**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; independent approval and the Sprint 4 dependency gate remain
+**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; independent approval and prerequisite Sprint 4/5 gates remain
 
-**Updated:** 1 September 2026
+**Updated:** 3 September 2026
 
 ## Completed and verified locally
 
-- RDS migration ownership (`staybuddy_migrator`) is separated from the non-owner runtime login (`staybuddy_runtime`) and scoped no-login tenant/platform roles; API and worker never receive the RDS master username or password.
-- Tenant and platform transactions always assume an explicit role and set trusted actor, hotel, trace, correlation, and department context. Business services no longer use owner-level direct pool queries.
-- PostgreSQL validates active platform identities/grants and active staff identities/hotel memberships. Token or debug claims cannot elevate hotel, role, or department authority; debug auth is test-only.
-- Explicit RLS policies cover every current tenant table, cross-tenant foreign keys include `hotel_id`, and platform authenticator/resolver/support/system access is constrained by policy.
-- Tenant and platform mutations support persisted request fingerprints and deterministic replay. Material platform mutations write append-only audit and immutable outbox facts atomically.
-- The worker relays platform events separately and hotel events tenant by tenant, publishes with a deduplicating event job ID, reclaims expired leases, retries exponentially, and exposes terminal dead letters.
-- `pnpm ci:verify` passes from a fresh PostgreSQL 17 database: four migrations, 27 Sprint 5 controls, 32 Sprint 4 controls, 12/12 database integration tests, 5/5 API integration groups, 21/21 typecheck and unit graphs, 14/14 builds, 15 artifact groups, and secret scanning.
-- ADR-0007 and `TENANT_SECURITY_OPERATIONS.md` define role separation, principal validation, RLS incident handling, password rotation, monitoring, and dead-letter recovery.
-- Stacked PR #3 passes all four hosted checks, including clean PostgreSQL integration and both production Docker image builds.
+- One strict `CreateHotelInput` now creates hotel/location, encrypted primary contact, sales reference, room/commercial baseline, app identity, brand/voice/four locales, departments, initial service categories, features, configuration version 1, onboarding progress, audit, and outbox evidence in one idempotent transaction.
+- Published public configuration is versioned, immutable, secret-free, atomic, auditable, and exposed through an idempotent update API.
+- Mobile bootstrap resolves a hashed per-app key, pins hotel/app identity, uses Ed25519 verification, carries config/minimum-version/maintenance policy, and supports private caching with `ETag`, `Vary`, 304 revalidation, expiry, and safe cached fallback.
+- Ops screens cover the live hotel directory, complete hotel creation, overview, and onboarding progress. A synthetic CC Phuket onboarding fixture and API command require no source edit.
+- Migration `0005_hotel_onboarding_config.sql`, ADR-0008, the onboarding/bootstrap runbook, updated OpenAPI, and 21 release-blocking Sprint 6 controls are present.
+- `pnpm ci:verify` passes against a new local PostgreSQL 17 database: five migrations, DB integration 12/12, API integration 6/6, typecheck/unit graph 21/21, builds 14/14, 15 artifact groups, two synthetic app configs, and secret scan across 201 source files.
+- No AWS, Hostinger, DNS, cloud environment, deployment, or production data was accessed or changed. Terraform was only initialized without backend and statically validated as an unchanged regression gate.
+- Stacked PR #4 at head `8951749` passes all four hosted checks in run `33727343769`, including clean PostgreSQL integration and both production Docker image builds.
 
 ## Remaining acceptance gates
 
-1. Complete Sprint 4 first: obtain its independent approval, authorize/configure AWS dev, and retain the CI deployment, PostgreSQL health, service stability, and matching X-Ray evidence.
-2. Rebase/retarget Sprint 5 after Sprint 4 merges and rerun all four checks against protected `main`.
-3. Obtain the independent approval required by protected `main`, then merge in dependency order; do not weaken branch protection.
+1. Complete and merge Sprint 4, then Sprint 5, in dependency order without weakening their external deployment/review gates.
+2. Retarget/rebase Sprint 6 onto protected `main`, rerun required checks, obtain independent approval, and merge.
+3. Replace CC Phuket placeholder brand assets and synthetic contact values with approved production inputs only through an authorized onboarding run; this is not required for the synthetic Sprint 6 exit test.
 
-The repository-controlled Sprint 5 exit gate passes locally and in hosted CI. Sprint 5 remains conditional because the prerequisite Sprint 4 external gates and protected-main review are not yet complete. Sprint 6 has not started.
+The repository-controlled local and hosted Sprint 6 exit gates pass. Sprint 7 has not started.

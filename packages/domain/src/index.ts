@@ -28,7 +28,10 @@ export const hotelRoles = [
 export type HotelRole = (typeof hotelRoles)[number];
 
 export type PlatformPermission =
-  "platform.hotels.read" | "platform.hotels.create" | "platform.app-builds.create";
+  | "platform.hotels.read"
+  | "platform.hotels.create"
+  | "platform.hotels.configure"
+  | "platform.app-builds.create";
 export type HotelPermission =
   | "hotel.reservations.read"
   | "hotel.reservations.write"
@@ -38,6 +41,7 @@ export type HotelPermission =
 const platformPermissions: Readonly<Record<PlatformPermission, readonly PlatformRole[]>> = {
   "platform.hotels.read": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_SUPPORT"],
   "platform.hotels.create": ["STAYBUDDY_SUPER_ADMIN"],
+  "platform.hotels.configure": ["STAYBUDDY_SUPER_ADMIN"],
   "platform.app-builds.create": ["STAYBUDDY_SUPER_ADMIN"],
 };
 

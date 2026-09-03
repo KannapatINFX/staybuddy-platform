@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Headers, Post } from "@nestjs/common";
+import { createHash } from "node:crypto";
+import { Body, Controller, Get, Headers, Param, Patch, Post, Res } from "@nestjs/common";
+import type { FastifyReply } from "fastify";
 import { PrincipalService } from "./principal.service.js";
 import { PlatformService } from "./platform.service.js";
 
@@ -10,8 +12,48 @@ export class PlatformController {
   ) {}
 
   @Get("mobile/bootstrap")
-  getBootstrap(@Headers("x-app-installation-key") appKey?: string) {
-    return this.platform.getBootstrap(appKey ?? "");
+  async getBootstrap(
+    @Headers("x-app-installation-key") appKey?: string,
+    @Headers("x-app-version") appVersion?: string,
+    @Headers("if-none-match") ifNoneMatch?: string,
+    @Res({ passthrough: true }) response?: FastifyReply,
+  ) {
+    const signed = await this.platform.getBootstrap(appKey ?? "", appVersion);
+    const etag = `"${createHash("sha256").update(JSON.stringify(signed)).digest("base64url")}"`;
+    response?.header("Cache-Control", "private, max-age=300, stale-if-error=86400");
+    response?.header("Vary", "X-App-Installation-Key, X-App-Version");
+    response?.header("ETag", etag);
+    if (ifNoneMatch === etag) {
+      response?.code(304);
+      return;
+    }
+    return signed;
+  }
+
+  @Get("ops/hotels/:hotelId")
+  async getHotel(
+    @Param("hotelId") hotelId: string,
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.hotels.read");
+    return this.platform.getHotel(hotelId, principal);
+  }
+
+  @Patch("ops/hotels/:hotelId/config")
+  async publishHotelConfig(
+    @Param("hotelId") hotelId: string,
+    @Body() input: unknown,
+    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.hotels.configure");
+    return this.platform.publishHotelConfig(hotelId, input, principal, idempotencyKey);
   }
 
   @Get("ops/hotels")

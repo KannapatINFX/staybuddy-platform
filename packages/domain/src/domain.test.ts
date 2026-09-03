@@ -35,6 +35,8 @@ describe("locked domain rules", () => {
     expect(isPlatformRole("ROOT")).toBe(false);
     expect(canPlatform("STAYBUDDY_SUPER_ADMIN", "platform.hotels.create")).toBe(true);
     expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.create")).toBe(false);
+    expect(canPlatform("STAYBUDDY_SUPER_ADMIN", "platform.hotels.configure")).toBe(true);
+    expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.configure")).toBe(false);
     expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.read")).toBe(true);
   });
 

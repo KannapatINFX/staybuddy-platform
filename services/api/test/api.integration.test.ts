@@ -97,8 +97,27 @@ describe.sequential("StayBuddy phase-0 API", () => {
     expect(response.headers["x-trace-id"]).toMatch(/^[A-Za-z0-9-]{1,64}$/);
   });
 
+  it("returns a safe validation error for an incomplete onboarding command", async () => {
+    const response = await api.inject({
+      method: "POST",
+      url: "/v1/ops/hotels",
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": platformActorId,
+        "idempotency-key": `invalid-${randomUUID()}`,
+      },
+      payload: { slug: "incomplete" },
+    });
+    expect(response.statusCode).toBe(400);
+    expect(decode<{ code: string; metadata: { field: string } }>(response)).toMatchObject({
+      code: "INVALID_REQUEST",
+      metadata: { field: expect.any(String) },
+    });
+  });
+
   it("onboards two isolated hotels and returns a verifiable signed bootstrap", async () => {
     const create = async (slug: string, displayName: string, idempotencyKey: string) => {
+      const packageName = slug.replaceAll("-", "");
       const payload = {
         slug,
         legalName: `${displayName} Company Limited`,
@@ -106,6 +125,45 @@ describe.sequential("StayBuddy phase-0 API", () => {
         roomCount: 88,
         timezone: "Asia/Bangkok",
         countryCode: "TH",
+        location: { name: displayName, province: "Phuket", district: "Mueang Phuket" },
+        primaryContact: {
+          name: "Integration Owner",
+          email: `owner+${slug}@example.com`,
+          phone: "+66812345678",
+        },
+        salesReference: `SALES-${slug}`,
+        app: {
+          appName: displayName,
+          scheme: slug,
+          iosBundleIdentifier: `com.staybuddy.${packageName}`,
+          androidPackage: `com.staybuddy.${packageName}`,
+          minimumVersion: "1.0.0",
+        },
+        brand: {
+          theme: {
+            primary: "#102A43",
+            accent: "#C9A45C",
+            canvas: "#FCF9F3",
+            surfaceWarm: "#EFE6D7",
+            ink: "#152535",
+            divider: "#EDF1F3",
+            logoUrl: `https://assets.example.invalid/${slug}/logo.png`,
+            heroImageUrl: `https://assets.example.invalid/${slug}/hero.jpg`,
+          },
+          supportedLocales: ["en", "th", "zh-CN", "ru"],
+          defaultLocale: "en",
+          voiceProfile: "FIVE_STAR_RESORT",
+        },
+        departments: [
+          { code: "FRONT", name: "Front Desk", defaultSlaMinutes: 10 },
+          { code: "HOUSEKEEPING", name: "Housekeeping", defaultSlaMinutes: 15 },
+        ],
+        serviceCategories: [
+          { code: "GUEST_REQUESTS", name: "Guest Requests", departmentCode: "FRONT" },
+          { code: "ROOM_CARE", name: "Room Care", departmentCode: "HOUSEKEEPING" },
+        ],
+        features: { guestShell: true, reservationCsv: true, stayClaim: true, emailOtp: true },
+        commercial: { discountMinor: 0 },
       };
       const response = await api.inject({
         method: "POST",
@@ -185,13 +243,98 @@ describe.sequential("StayBuddy phase-0 API", () => {
     const bootstrap = await api.inject({
       method: "GET",
       url: "/v1/mobile/bootstrap",
-      headers: { "x-app-installation-key": hotelA.appInstallationKey },
+      headers: { "x-app-installation-key": hotelA.appInstallationKey, "x-app-version": "1.0.0" },
     });
     expect(bootstrap.statusCode).toBe(200);
     const signed = decode<Parameters<typeof verifyBootstrapManifest>[0]>(bootstrap);
     expect(verifyBootstrapManifest(signed, publicKey)).toBe(true);
     expect(signed.manifest.hotelId).toBe(hotelA.hotelId);
+    expect(signed.manifest.configVersion).toBe(1);
+    expect(signed.manifest.versionPolicy).toBe("SUPPORTED");
     expect(signed.manifest.supportedLocales).toEqual(["en", "th", "zh-CN", "ru"]);
+    expect(JSON.stringify(signed)).not.toContain(hotelA.appInstallationKey);
+
+    const detailResponse = await api.inject({
+      method: "GET",
+      url: `/v1/ops/hotels/${hotelA.hotelId}`,
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": platformActorId,
+      },
+    });
+    expect(detailResponse.statusCode).toBe(200);
+    expect(
+      decode<{ primaryContact: { email: string }; onboarding: unknown[] }>(detailResponse),
+    ).toMatchObject({
+      primaryContact: { email: expect.stringContaining("owner+") },
+    });
+    expect(decode<{ onboarding: unknown[] }>(detailResponse).onboarding).toHaveLength(13);
+
+    const published = await api.inject({
+      method: "PATCH",
+      url: `/v1/ops/hotels/${hotelA.hotelId}/config`,
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPER_ADMIN",
+        "x-debug-actor-id": platformActorId,
+        "idempotency-key": `config-${randomUUID()}`,
+      },
+      payload: {
+        appName: "Integration Hotel A Guest",
+        hotelDisplayName: "Integration Hotel A",
+        theme: createdA.payload.brand.theme,
+        supportedLocales: ["en", "th", "zh-CN", "ru"],
+        defaultLocale: "th",
+        voiceProfile: "FIVE_STAR_BOUTIQUE",
+        features: { guestShell: true, reservationCsv: true, stayClaim: true, emailOtp: true },
+        minimumVersion: "2.0.0",
+        maintenance: { active: false },
+        departments: createdA.payload.departments,
+        serviceCategories: createdA.payload.serviceCategories,
+      },
+    });
+    expect(published.statusCode).toBe(200);
+    expect(decode<{ body: { configVersion: number } }>(published).body.configVersion).toBe(2);
+    const updatedBootstrap = await api.inject({
+      method: "GET",
+      url: "/v1/mobile/bootstrap",
+      headers: { "x-app-installation-key": hotelA.appInstallationKey, "x-app-version": "1.5.0" },
+    });
+    const updatedSigned = decode<Parameters<typeof verifyBootstrapManifest>[0]>(updatedBootstrap);
+    expect(verifyBootstrapManifest(updatedSigned, publicKey)).toBe(true);
+    expect(updatedSigned.manifest).toMatchObject({
+      configVersion: 2,
+      appName: "Integration Hotel A Guest",
+      defaultLocale: "th",
+      versionPolicy: "UPDATE_REQUIRED",
+    });
+    expect(updatedBootstrap.headers["cache-control"]).toContain("max-age=300");
+    expect(updatedBootstrap.headers.vary).toContain("X-App-Installation-Key");
+    const cachedBootstrap = await api.inject({
+      method: "GET",
+      url: "/v1/mobile/bootstrap",
+      headers: {
+        "x-app-installation-key": hotelA.appInstallationKey,
+        "x-app-version": "1.5.0",
+        "if-none-match": String(updatedBootstrap.headers.etag),
+      },
+    });
+    expect(cachedBootstrap.statusCode).toBe(304);
+    expect(cachedBootstrap.body).toBe("");
+    const protectedContact = await adminPool.query<{
+      encrypted_primary_contact_email: string;
+      primary_contact_email_hash: string;
+    }>(
+      "SELECT encrypted_primary_contact_email, primary_contact_email_hash FROM hotel_onboarding_profiles WHERE hotel_id=$1",
+      [hotelA.hotelId],
+    );
+    expect(protectedContact.rows[0]!.encrypted_primary_contact_email).not.toContain("owner+");
+    expect(protectedContact.rows[0]!.primary_contact_email_hash).toMatch(/^[0-9a-f]{64}$/);
+    await expect(
+      adminPool.query(
+        "UPDATE hotel_public_config_versions SET public_config='{}' WHERE hotel_id=$1 AND version=2",
+        [hotelA.hotelId],
+      ),
+    ).rejects.toMatchObject({ code: "55000" });
   });
 
   it("rejects cross-hotel membership reuse and claimed role elevation", async () => {

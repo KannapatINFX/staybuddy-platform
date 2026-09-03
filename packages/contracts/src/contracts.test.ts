@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { BootstrapManifestSchema, CanonicalReservationSchema, LocaleSchema } from "./index.js";
+import {
+  BootstrapManifestSchema,
+  CanonicalReservationSchema,
+  CreateHotelInputSchema,
+  LocaleSchema,
+} from "./index.js";
 import { createOpenApiDocument } from "./openapi.js";
 import {
   deriveBootstrapPublicKey,
@@ -38,7 +43,7 @@ describe("contracts", () => {
     const privateKey = "0000000000000000000000000000000000000000000000000000000000000001";
     const manifest = BootstrapManifestSchema.parse({
       schemaVersion: 1,
-      appInstallationKey: "cc-phuket-public-app-key",
+      configVersion: 2,
       hotelId: "hotel-cc-phuket",
       appId: "app-cc-phuket",
       appName: "CC Phuket Residence",
@@ -58,6 +63,7 @@ describe("contracts", () => {
       features: { concierge: true },
       minimumVersion: "1.0.0",
       maintenance: { active: false },
+      versionPolicy: "SUPPORTED",
       issuedAt: "2026-08-30T00:00:00.000Z",
       expiresAt: "2026-08-31T00:00:00.000Z",
     });
@@ -67,5 +73,10 @@ describe("contracts", () => {
     expect(
       verifyBootstrapManifest({ ...signed, manifest: { ...manifest, appName: "Tampered" } }, publicKey),
     ).toBe(false);
+    expect(JSON.stringify(signed)).not.toContain("cc-phuket-public-app-key");
+  });
+
+  it("requires a complete hotel onboarding payload", () => {
+    expect(CreateHotelInputSchema.safeParse({ slug: "incomplete" }).success).toBe(false);
   });
 });
