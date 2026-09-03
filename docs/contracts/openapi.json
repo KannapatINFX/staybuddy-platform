@@ -31,6 +31,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-App-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -93,6 +101,11 @@
       },
       "post": {
         "operationId": "createHotel",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -130,6 +143,143 @@
             }
           },
           "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/hotels/{hotelId}": {
+      "get": {
+        "operationId": "getHotel",
+        "parameters": [
+          {
+            "name": "hotelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "HotelDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotelDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/hotels/{hotelId}/config": {
+      "patch": {
+        "operationId": "publishHotelConfig",
+        "parameters": [
+          {
+            "name": "hotelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishHotelConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PublishedConfig",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedConfig"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
             "description": "ApiError",
             "content": {
               "application/json": {
@@ -1218,6 +1368,8 @@
               "TENANT_NOT_RESOLVED",
               "NOT_FOUND",
               "CONFLICT",
+              "IDEMPOTENCY_KEY_REUSED",
+              "IDEMPOTENCY_IN_PROGRESS",
               "RATE_LIMITED",
               "CLAIM_EXPIRED",
               "CLAIM_REPLAYED",
@@ -1265,10 +1417,10 @@
             "type": "number",
             "const": 1
           },
-          "appInstallationKey": {
-            "type": "string",
-            "minLength": 16,
-            "maxLength": 120
+          "configVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
           },
           "hotelId": {
             "type": "string",
@@ -1396,6 +1548,13 @@
             ],
             "additionalProperties": false
           },
+          "versionPolicy": {
+            "type": "string",
+            "enum": [
+              "SUPPORTED",
+              "UPDATE_REQUIRED"
+            ]
+          },
           "issuedAt": {
             "type": "string",
             "format": "date-time",
@@ -1409,7 +1568,7 @@
         },
         "required": [
           "schemaVersion",
-          "appInstallationKey",
+          "configVersion",
           "hotelId",
           "appId",
           "appName",
@@ -1421,6 +1580,7 @@
           "features",
           "minimumVersion",
           "maintenance",
+          "versionPolicy",
           "issuedAt",
           "expiresAt"
         ],
@@ -1437,10 +1597,10 @@
                 "type": "number",
                 "const": 1
               },
-              "appInstallationKey": {
-                "type": "string",
-                "minLength": 16,
-                "maxLength": 120
+              "configVersion": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
               },
               "hotelId": {
                 "type": "string",
@@ -1568,6 +1728,13 @@
                 ],
                 "additionalProperties": false
               },
+              "versionPolicy": {
+                "type": "string",
+                "enum": [
+                  "SUPPORTED",
+                  "UPDATE_REQUIRED"
+                ]
+              },
               "issuedAt": {
                 "type": "string",
                 "format": "date-time",
@@ -1581,7 +1748,7 @@
             },
             "required": [
               "schemaVersion",
-              "appInstallationKey",
+              "configVersion",
               "hotelId",
               "appId",
               "appName",
@@ -1593,6 +1760,7 @@
               "features",
               "minimumVersion",
               "maintenance",
+              "versionPolicy",
               "issuedAt",
               "expiresAt"
             ],
@@ -1813,6 +1981,39 @@
               "additionalProperties": false
             }
           },
+          "serviceCategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "departmentCode": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 80
+                }
+              },
+              "required": [
+                "code",
+                "name",
+                "departmentCode",
+                "id"
+              ],
+              "additionalProperties": false
+            }
+          },
           "features": {
             "type": "object",
             "propertyNames": {
@@ -1837,6 +2038,7 @@
           "theme",
           "commercial",
           "departments",
+          "serviceCategories",
           "features"
         ],
         "additionalProperties": false
@@ -1846,13 +2048,18 @@
         "type": "object",
         "properties": {
           "slug": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
           },
           "legalName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
           },
           "displayName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
           },
           "roomCount": {
             "type": "integer",
@@ -1860,12 +2067,282 @@
             "maximum": 9007199254740991
           },
           "timezone": {
-            "type": "string"
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
           },
           "countryCode": {
+            "default": "TH",
             "type": "string",
             "minLength": 2,
             "maxLength": 2
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "province": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "district": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "primaryContact": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "phone": {
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 40
+              }
+            },
+            "required": [
+              "name",
+              "email"
+            ],
+            "additionalProperties": false
+          },
+          "salesReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "app": {
+            "type": "object",
+            "properties": {
+              "appName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "scheme": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "iosBundleIdentifier": {
+                "type": "string",
+                "pattern": "^com\\.[a-z0-9.]+$"
+              },
+              "androidPackage": {
+                "type": "string",
+                "pattern": "^com\\.[a-z0-9.]+$"
+              },
+              "minimumVersion": {
+                "default": "1.0.0",
+                "type": "string",
+                "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              }
+            },
+            "required": [
+              "appName",
+              "scheme",
+              "iosBundleIdentifier",
+              "androidPackage",
+              "minimumVersion"
+            ],
+            "additionalProperties": false
+          },
+          "brand": {
+            "type": "object",
+            "properties": {
+              "theme": {
+                "type": "object",
+                "properties": {
+                  "primary": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "canvas": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "surfaceWarm": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "ink": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "divider": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "heroImageUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "primary",
+                  "accent",
+                  "canvas",
+                  "surfaceWarm",
+                  "ink",
+                  "divider",
+                  "logoUrl"
+                ],
+                "additionalProperties": false
+              },
+              "supportedLocales": {
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "en",
+                    "th",
+                    "zh-CN",
+                    "ru"
+                  ]
+                }
+              },
+              "defaultLocale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "th",
+                  "zh-CN",
+                  "ru"
+                ]
+              },
+              "voiceProfile": {
+                "type": "string",
+                "enum": [
+                  "FIVE_STAR_RESORT",
+                  "FIVE_STAR_BOUTIQUE"
+                ]
+              }
+            },
+            "required": [
+              "theme",
+              "supportedLocales",
+              "defaultLocale",
+              "voiceProfile"
+            ],
+            "additionalProperties": false
+          },
+          "departments": {
+            "minItems": 1,
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "defaultSlaMinutes": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1440
+                }
+              },
+              "required": [
+                "code",
+                "name",
+                "defaultSlaMinutes"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "serviceCategories": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "departmentCode": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                }
+              },
+              "required": [
+                "code",
+                "name",
+                "departmentCode"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "features": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[a-z][A-Za-z0-9]*$"
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "commercial": {
+            "type": "object",
+            "properties": {
+              "discountMinor": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "waiverReason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "discountMinor"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -1873,7 +2350,212 @@
           "legalName",
           "displayName",
           "roomCount",
-          "timezone"
+          "timezone",
+          "countryCode",
+          "location",
+          "primaryContact",
+          "app",
+          "brand",
+          "departments",
+          "serviceCategories",
+          "features",
+          "commercial"
+        ],
+        "additionalProperties": false
+      },
+      "PublishHotelConfig": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "appName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "hotelDisplayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "theme": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "accent": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "canvas": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "surfaceWarm": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "ink": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "divider": {
+                "type": "string",
+                "pattern": "^#[0-9A-F]{6}$"
+              },
+              "logoUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "heroImageUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "primary",
+              "accent",
+              "canvas",
+              "surfaceWarm",
+              "ink",
+              "divider",
+              "logoUrl"
+            ],
+            "additionalProperties": false
+          },
+          "supportedLocales": {
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "en",
+                "th",
+                "zh-CN",
+                "ru"
+              ]
+            }
+          },
+          "defaultLocale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "th",
+              "zh-CN",
+              "ru"
+            ]
+          },
+          "voiceProfile": {
+            "type": "string",
+            "enum": [
+              "FIVE_STAR_RESORT",
+              "FIVE_STAR_BOUTIQUE"
+            ]
+          },
+          "features": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[a-z][A-Za-z0-9]*$"
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "minimumVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "maintenance": {
+            "type": "object",
+            "properties": {
+              "active": {
+                "type": "boolean"
+              },
+              "messageKey": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "active"
+            ],
+            "additionalProperties": false
+          },
+          "departments": {
+            "minItems": 1,
+            "maxItems": 30,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "defaultSlaMinutes": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1440
+                }
+              },
+              "required": [
+                "code",
+                "name",
+                "defaultSlaMinutes"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "serviceCategories": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "departmentCode": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]+$"
+                }
+              },
+              "required": [
+                "code",
+                "name",
+                "departmentCode"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "appName",
+          "hotelDisplayName",
+          "theme",
+          "supportedLocales",
+          "defaultLocale",
+          "voiceProfile",
+          "features",
+          "minimumVersion",
+          "maintenance",
+          "departments",
+          "serviceCategories"
         ],
         "additionalProperties": false
       },
@@ -1881,34 +2563,494 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "hotelId": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 80
-          },
-          "appId": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 80
-          },
-          "appInstallationKey": {
-            "type": "string",
-            "minLength": 16
-          },
           "status": {
-            "type": "string",
-            "const": "ONBOARDING"
+            "type": "number",
+            "const": 201
           },
-          "nextStep": {
-            "type": "string"
+          "body": {
+            "type": "object",
+            "properties": {
+              "hotelId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "appId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "appInstallationKey": {
+                "type": "string",
+                "minLength": 16
+              },
+              "status": {
+                "type": "string",
+                "const": "ONBOARDING"
+              },
+              "nextStep": {
+                "type": "string"
+              },
+              "configVersion": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "hotelId",
+              "appId",
+              "appInstallationKey",
+              "status",
+              "nextStep",
+              "configVersion"
+            ],
+            "additionalProperties": false
+          },
+          "replayed": {
+            "type": "boolean"
           }
         },
         "required": [
-          "hotelId",
-          "appId",
-          "appInstallationKey",
           "status",
-          "nextStep"
+          "body",
+          "replayed"
+        ],
+        "additionalProperties": false
+      },
+      "HotelDetail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "hotel": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "legalName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "DRAFT",
+                  "ONBOARDING",
+                  "PILOT",
+                  "LIVE",
+                  "SUSPENDED"
+                ]
+              },
+              "timezone": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 80
+              },
+              "countryCode": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              },
+              "supportedLocales": {
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "en",
+                    "th",
+                    "zh-CN",
+                    "ru"
+                  ]
+                }
+              },
+              "defaultLocale": {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "th",
+                  "zh-CN",
+                  "ru"
+                ]
+              },
+              "voiceProfile": {
+                "type": "string",
+                "enum": [
+                  "FIVE_STAR_RESORT",
+                  "FIVE_STAR_BOUTIQUE"
+                ]
+              },
+              "theme": {
+                "type": "object",
+                "properties": {
+                  "primary": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "accent": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "canvas": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "surfaceWarm": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "ink": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "divider": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-F]{6}$"
+                  },
+                  "logoUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "heroImageUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "primary",
+                  "accent",
+                  "canvas",
+                  "surfaceWarm",
+                  "ink",
+                  "divider",
+                  "logoUrl"
+                ],
+                "additionalProperties": false
+              },
+              "commercial": {
+                "type": "object",
+                "properties": {
+                  "roomCount": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "listPricePerRoomThb": {
+                    "type": "number",
+                    "const": 150
+                  },
+                  "minimumBillableRooms": {
+                    "type": "number",
+                    "const": 50
+                  },
+                  "discountMinor": {
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "waiverReason": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "commerceCommissionBasisPoints": {
+                    "type": "number",
+                    "const": 500
+                  },
+                  "aiMarkupBasisPoints": {
+                    "type": "number",
+                    "const": 1250
+                  }
+                },
+                "required": [
+                  "roomCount",
+                  "listPricePerRoomThb",
+                  "minimumBillableRooms",
+                  "discountMinor",
+                  "commerceCommissionBasisPoints",
+                  "aiMarkupBasisPoints"
+                ],
+                "additionalProperties": false
+              },
+              "departments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 8,
+                      "maxLength": 80
+                    },
+                    "code": {
+                      "type": "string",
+                      "pattern": "^[A-Z][A-Z0-9_]+$"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "defaultSlaMinutes": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "defaultSlaMinutes"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "serviceCategories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "pattern": "^[A-Z][A-Z0-9_]+$"
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "departmentCode": {
+                      "type": "string",
+                      "pattern": "^[A-Z][A-Z0-9_]+$"
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 8,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "name",
+                    "departmentCode",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "features": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "slug",
+              "legalName",
+              "displayName",
+              "status",
+              "timezone",
+              "countryCode",
+              "supportedLocales",
+              "defaultLocale",
+              "voiceProfile",
+              "theme",
+              "commercial",
+              "departments",
+              "serviceCategories",
+              "features"
+            ],
+            "additionalProperties": false
+          },
+          "app": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "appName": {
+                "type": "string"
+              },
+              "scheme": {
+                "type": "string"
+              },
+              "iosBundleIdentifier": {
+                "type": "string"
+              },
+              "androidPackage": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "configVersion": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "id",
+              "appName",
+              "scheme",
+              "iosBundleIdentifier",
+              "androidPackage",
+              "status",
+              "configVersion"
+            ],
+            "additionalProperties": false
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "province": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "district": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "province",
+              "district"
+            ],
+            "additionalProperties": false
+          },
+          "primaryContact": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "email",
+              "phone"
+            ],
+            "additionalProperties": false
+          },
+          "salesReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "onboarding": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "step": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "step",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "hotel",
+          "app",
+          "location",
+          "primaryContact",
+          "salesReference",
+          "onboarding"
+        ],
+        "additionalProperties": false
+      },
+      "PublishedConfig": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "const": 200
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "hotelId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "configVersion": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "publishedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              }
+            },
+            "required": [
+              "hotelId",
+              "configVersion",
+              "publishedAt"
+            ],
+            "additionalProperties": false
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "body",
+          "replayed"
         ],
         "additionalProperties": false
       },

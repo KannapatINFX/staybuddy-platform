@@ -10,6 +10,8 @@ import {
   EmailOtpStartSchema,
   EmailOtpVerifySchema,
   HotelConfigurationSchema,
+  CreateHotelInputSchema,
+  PublishHotelConfigSchema,
   IdentifierSchema,
   ImportMappingSchema,
   ImportPreviewSchema,
@@ -55,20 +57,44 @@ const ReservationCommitResultSchema = z.object({
   updated: z.number().int().nonnegative(),
   rejected: z.number().int().nonnegative(),
 });
-const CreateHotelInputSchema = z.object({
-  slug: z.string(),
-  legalName: z.string(),
-  displayName: z.string(),
-  roomCount: z.number().int().positive(),
-  timezone: z.string(),
-  countryCode: z.string().length(2).optional(),
-});
-const CreatedHotelSchema = z.object({
+const CreatedHotelBodySchema = z.object({
   hotelId: IdentifierSchema,
   appId: IdentifierSchema,
   appInstallationKey: z.string().min(16),
   status: z.literal("ONBOARDING"),
   nextStep: z.string(),
+  configVersion: z.number().int().positive(),
+});
+const CreatedHotelSchema = z.object({
+  status: z.literal(201),
+  body: CreatedHotelBodySchema,
+  replayed: z.boolean(),
+});
+const HotelDetailSchema = z.object({
+  hotel: HotelConfigurationSchema,
+  app: z.object({
+    id: IdentifierSchema,
+    appName: z.string(),
+    scheme: z.string(),
+    iosBundleIdentifier: z.string(),
+    androidPackage: z.string(),
+    status: z.string(),
+    configVersion: z.number().int().positive(),
+  }),
+  location: z.object({ name: z.string(), province: z.string().nullable(), district: z.string().nullable() }),
+  primaryContact: z.object({ name: z.string(), email: z.string().email(), phone: z.string().nullable() }),
+  salesReference: z.string().nullable(),
+  onboarding: z.array(z.object({ step: z.string(), status: z.string() })),
+});
+const PublishedConfigBodySchema = z.object({
+  hotelId: IdentifierSchema,
+  configVersion: z.number().int().positive(),
+  publishedAt: UtcDateTimeSchema,
+});
+const PublishedConfigSchema = z.object({
+  status: z.literal(200),
+  body: PublishedConfigBodySchema,
+  replayed: z.boolean(),
 });
 const HotelSummarySchema = z.object({
   id: IdentifierSchema,
@@ -110,7 +136,10 @@ const schemas = {
   SignedBootstrapManifest: SignedBootstrapManifestSchema,
   HotelConfiguration: HotelConfigurationSchema,
   CreateHotelInput: CreateHotelInputSchema,
+  PublishHotelConfig: PublishHotelConfigSchema,
   CreatedHotel: CreatedHotelSchema,
+  HotelDetail: HotelDetailSchema,
+  PublishedConfig: PublishedConfigSchema,
   HotelSummary: HotelSummarySchema,
   AppBuildCommand: AppBuildCommandSchema,
   AppBuildReceipt: AppBuildReceiptSchema,
@@ -148,14 +177,27 @@ export function createOpenApiDocument() {
       "/mobile/bootstrap": {
         get: {
           operationId: "getMobileBootstrap",
-          parameters: [header("X-App-Installation-Key", true)],
+          parameters: [header("X-App-Installation-Key", true), header("X-App-Version", false)],
           responses: { "200": response("SignedBootstrapManifest"), "404": response("ApiError") },
         },
       },
       "/ops/hotels": {
         get: securedGet("listHotels", "HotelSummary", true),
-        ...post("createHotel", "CreateHotelInput", "CreatedHotel", { secured: true, status: "201" }),
+        ...post("createHotel", "CreateHotelInput", "CreatedHotel", {
+          secured: true,
+          idempotent: true,
+          status: "201",
+        }),
       },
+      "/ops/hotels/{hotelId}": {
+        get: securedGetWithPath("getHotel", "HotelDetail", "hotelId"),
+      },
+      "/ops/hotels/{hotelId}/config": patch(
+        "publishHotelConfig",
+        "PublishHotelConfig",
+        "PublishedConfig",
+        "hotelId",
+      ),
       "/ops/app-builds": post("createAppBuild", "AppBuildCommand", "AppBuildReceipt", {
         secured: true,
         status: "201",
@@ -255,6 +297,39 @@ function securedGet(operationId: string, responseSchema: string, array = false) 
     operationId,
     security: [{ bearerAuth: [] }],
     responses: { "200": response(responseSchema, array), "401": response("ApiError") },
+  };
+}
+
+function securedGetWithPath(operationId: string, responseSchema: string, pathIdentifier: string) {
+  return {
+    operationId,
+    parameters: [{ name: pathIdentifier, in: "path", required: true, schema: { type: "string" } }],
+    security: [{ bearerAuth: [] }],
+    responses: { "200": response(responseSchema), "401": response("ApiError"), "404": response("ApiError") },
+  };
+}
+
+function patch(operationId: string, requestSchema: string, responseSchema: string, pathIdentifier: string) {
+  return {
+    patch: {
+      operationId,
+      parameters: [
+        { name: pathIdentifier, in: "path", required: true, schema: { type: "string" } },
+        { $ref: "#/components/parameters/IdempotencyKey" },
+      ],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: { "application/json": { schema: { $ref: `#/components/schemas/${requestSchema}` } } },
+      },
+      responses: {
+        "200": response(responseSchema),
+        "400": response("ApiError"),
+        "401": response("ApiError"),
+        "404": response("ApiError"),
+        "409": response("ApiError"),
+      },
+    },
   };
 }
 

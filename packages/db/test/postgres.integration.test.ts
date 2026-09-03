@@ -138,6 +138,10 @@ describeWithDatabase("PostgreSQL tenant boundary", () => {
       "hotel_departments",
       "hotel_memberships",
       "hotel_commercial_configs",
+      "hotel_onboarding_profiles",
+      "hotel_onboarding_steps",
+      "hotel_service_categories",
+      "hotel_public_config_versions",
       "app_build_jobs",
       "idempotency_keys",
       "outbox_events",
@@ -175,8 +179,8 @@ describeWithDatabase("PostgreSQL tenant boundary", () => {
     const suffix = randomUUID().replaceAll("-", "");
     const appB = await pool!.query<{ id: string }>(
       `INSERT INTO hotel_apps
-        (hotel_id, app_installation_key_hash, app_installation_key_hint, app_name, ios_bundle_id, android_package, status)
-       VALUES ($1,$2,'hint','Hotel B',$3,$4,'DRAFT') RETURNING id`,
+        (hotel_id, app_installation_key_hash, app_installation_key_hint, app_name, scheme, ios_bundle_id, android_package, status)
+       VALUES ($1,$2,'hint','Hotel B','hotelb',$3,$4,'DRAFT') RETURNING id`,
       [hotelB, randomUUID(), `com.test.b${suffix}.ios`, `com.test.b${suffix}.android`],
     );
     await expect(

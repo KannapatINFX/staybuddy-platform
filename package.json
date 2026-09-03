@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build",
     "artifacts:check": "node scripts/check-build-artifacts.mjs",
-    "ci:quality": "pnpm format:check && pnpm lint && pnpm dependencies:check && pnpm fixtures:check && pnpm contracts:check && pnpm infra:check && pnpm foundation:check && pnpm tenant-foundation:check && pnpm typecheck && pnpm test",
+    "ci:quality": "pnpm format:check && pnpm lint && pnpm dependencies:check && pnpm fixtures:check && pnpm contracts:check && pnpm infra:check && pnpm foundation:check && pnpm tenant-foundation:check && pnpm onboarding:check && pnpm typecheck && pnpm test",
     "ci:verify": "pnpm ci:quality && pnpm migrations:check && pnpm db:migrate && pnpm test:integration && pnpm build && pnpm artifacts:check && pnpm app-factory:validate && pnpm secrets:check",
     "dev": "turbo run dev --parallel",
     "dependencies:check": "node scripts/check-dependency-policy.mjs",
@@ -20,6 +20,7 @@
     "infra:check": "terraform -chdir=infra/terraform fmt -check -recursive && terraform -chdir=infra/terraform init -backend=false -input=false && terraform -chdir=infra/terraform validate",
     "foundation:check": "node scripts/check-sprint4-foundation.mjs",
     "tenant-foundation:check": "node scripts/check-sprint5-tenant-foundation.mjs",
+    "onboarding:check": "node scripts/check-sprint6-onboarding.mjs",
     "lint": "eslint --max-warnings=0 .",
     "migrations:check": "node scripts/check-migrations.mjs",
     "secrets:check": "node scripts/scan-secrets.mjs",
@@ -31,7 +32,8 @@
     "contracts:check": "pnpm --filter @staybuddy/contracts check:openapi && pnpm --filter @staybuddy/contracts test",
     "db:migrate": "pnpm --filter @staybuddy/db migrate",
     "app-factory:validate": "tsx scripts/validate-app-factory.ts",
-    "app-factory:export:synthetic": "tsx scripts/export-synthetic-apps.ts"
+    "app-factory:export:synthetic": "tsx scripts/export-synthetic-apps.ts",
+    "tenant:onboard:synthetic": "tsx scripts/onboard-synthetic-hotel.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",

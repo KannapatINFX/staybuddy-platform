@@ -3,6 +3,7 @@ import { Catch, HttpException, type ExceptionFilter } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 import { randomUUID } from "node:crypto";
 import { captureException, currentTraceId } from "@staybuddy/observability";
+import { ZodError } from "zod";
 import { AppError } from "./errors.js";
 
 @Catch()
@@ -21,6 +22,18 @@ export class SafeHttpExceptionFilter implements ExceptionFilter {
     }
     if (exception instanceof HttpException) {
       void reply.status(exception.getStatus()).send({ code: "INVALID_REQUEST", traceId, retryable: false });
+      return;
+    }
+    if (exception instanceof ZodError) {
+      const issue = exception.issues[0];
+      void reply.status(400).send({
+        code: "INVALID_REQUEST",
+        traceId,
+        retryable: false,
+        ...(issue
+          ? { metadata: { field: issue.path.join(".") || "request", reason: issue.message.slice(0, 160) } }
+          : {}),
+      });
       return;
     }
     const databaseError = exception as {

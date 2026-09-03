@@ -54,6 +54,131 @@ export const BrandThemeSchema = z
   })
   .strict();
 
+export const DepartmentConfigurationSchema = z
+  .object({
+    code: z.string().regex(/^[A-Z][A-Z0-9_]+$/),
+    name: z.string().min(1).max(100),
+    defaultSlaMinutes: z.number().int().positive().max(1440),
+  })
+  .strict();
+
+export const ServiceCategoryConfigurationSchema = z
+  .object({
+    code: z.string().regex(/^[A-Z][A-Z0-9_]+$/),
+    name: z.string().min(1).max(100),
+    departmentCode: z.string().regex(/^[A-Z][A-Z0-9_]+$/),
+  })
+  .strict();
+
+export const PublicHotelConfigSchema = z
+  .object({
+    appName: z.string().min(1).max(80),
+    hotelDisplayName: z.string().min(1).max(120),
+    theme: BrandThemeSchema,
+    supportedLocales: z.array(LocaleSchema).length(4),
+    defaultLocale: LocaleSchema,
+    voiceProfile: z.enum(["FIVE_STAR_RESORT", "FIVE_STAR_BOUTIQUE"]),
+    features: z.record(z.string().regex(/^[a-z][A-Za-z0-9]*$/), z.boolean()),
+    minimumVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
+    maintenance: z.object({ active: z.boolean(), messageKey: z.string().min(1).optional() }).strict(),
+  })
+  .strict();
+
+export const CreateHotelInputSchema = z
+  .object({
+    slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    legalName: z.string().min(1).max(200),
+    displayName: z.string().min(1).max(120),
+    roomCount: z.coerce.number().int().positive(),
+    timezone: z.string().min(3).max(80),
+    countryCode: z.string().length(2).default("TH"),
+    location: z
+      .object({
+        name: z.string().min(1).max(120),
+        province: z.string().min(1).max(120).optional(),
+        district: z.string().min(1).max(120).optional(),
+      })
+      .strict(),
+    primaryContact: z
+      .object({
+        name: z.string().min(1).max(160),
+        email: z.string().email(),
+        phone: z.string().min(7).max(40).optional(),
+      })
+      .strict(),
+    salesReference: z.string().min(1).max(120).optional(),
+    app: z
+      .object({
+        appName: z.string().min(1).max(80),
+        scheme: z.string().regex(/^[a-z][a-z0-9-]*$/),
+        iosBundleIdentifier: z.string().regex(/^com\.[a-z0-9.]+$/),
+        androidPackage: z.string().regex(/^com\.[a-z0-9.]+$/),
+        minimumVersion: z
+          .string()
+          .regex(/^\d+\.\d+\.\d+$/)
+          .default("1.0.0"),
+      })
+      .strict(),
+    brand: z
+      .object({
+        theme: BrandThemeSchema,
+        supportedLocales: z.array(LocaleSchema).length(4),
+        defaultLocale: LocaleSchema,
+        voiceProfile: z.enum(["FIVE_STAR_RESORT", "FIVE_STAR_BOUTIQUE"]),
+      })
+      .strict(),
+    departments: z.array(DepartmentConfigurationSchema).min(1).max(30),
+    serviceCategories: z.array(ServiceCategoryConfigurationSchema).min(1).max(50),
+    features: z.record(z.string().regex(/^[a-z][A-Za-z0-9]*$/), z.boolean()),
+    commercial: z
+      .object({
+        discountMinor: z.number().int().nonnegative().default(0),
+        waiverReason: z.string().min(1).max(500).optional(),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((value, context) => validateOperationalCatalog(value, context));
+export type CreateHotelInput = z.infer<typeof CreateHotelInputSchema>;
+
+export const PublishHotelConfigSchema = PublicHotelConfigSchema.extend({
+  departments: z.array(DepartmentConfigurationSchema).min(1).max(30),
+  serviceCategories: z.array(ServiceCategoryConfigurationSchema).min(1).max(50),
+})
+  .strict()
+  .superRefine((value, context) => validateOperationalCatalog(value, context));
+export type PublishHotelConfig = z.infer<typeof PublishHotelConfigSchema>;
+
+function validateOperationalCatalog(
+  value: {
+    departments: Array<{ code: string }>;
+    serviceCategories: Array<{ code: string; departmentCode: string }>;
+  },
+  context: z.RefinementCtx,
+) {
+  const departmentCodes = new Set(value.departments.map((department) => department.code));
+  if (departmentCodes.size !== value.departments.length) {
+    context.addIssue({ code: "custom", path: ["departments"], message: "department codes must be unique" });
+  }
+  const categoryCodes = new Set(value.serviceCategories.map((category) => category.code));
+  if (categoryCodes.size !== value.serviceCategories.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["serviceCategories"],
+      message: "service category codes must be unique",
+    });
+  }
+  value.serviceCategories.forEach((category, index) => {
+    if (!departmentCodes.has(category.departmentCode)) {
+      context.addIssue({
+        code: "custom",
+        path: ["serviceCategories", index, "departmentCode"],
+        message: "service category department must exist in this configuration",
+      });
+    }
+  });
+}
+
 export const HotelCommercialSchema = z
   .object({
     roomCount: z.number().int().positive(),
@@ -90,6 +215,7 @@ export const HotelConfigurationSchema = z
         })
         .strict(),
     ),
+    serviceCategories: z.array(ServiceCategoryConfigurationSchema.extend({ id: IdentifierSchema }).strict()),
     features: z.record(z.string(), z.boolean()),
   })
   .strict();
@@ -98,7 +224,7 @@ export type HotelConfiguration = z.infer<typeof HotelConfigurationSchema>;
 export const BootstrapManifestSchema = z
   .object({
     schemaVersion: z.literal(1),
-    appInstallationKey: z.string().min(16).max(120),
+    configVersion: z.number().int().positive(),
     hotelId: IdentifierSchema,
     appId: IdentifierSchema,
     appName: z.string().min(1).max(80),
@@ -110,6 +236,7 @@ export const BootstrapManifestSchema = z
     features: z.record(z.string(), z.boolean()),
     minimumVersion: z.string().regex(/^\d+\.\d+\.\d+$/),
     maintenance: z.object({ active: z.boolean(), messageKey: z.string().min(1).optional() }).strict(),
+    versionPolicy: z.enum(["SUPPORTED", "UPDATE_REQUIRED"]),
     issuedAt: UtcDateTimeSchema,
     expiresAt: UtcDateTimeSchema,
   })
@@ -278,6 +405,8 @@ export const ApiErrorSchema = z
       "TENANT_NOT_RESOLVED",
       "NOT_FOUND",
       "CONFLICT",
+      "IDEMPOTENCY_KEY_REUSED",
+      "IDEMPOTENCY_IN_PROGRESS",
       "RATE_LIMITED",
       "CLAIM_EXPIRED",
       "CLAIM_REPLAYED",

@@ -40,7 +40,6 @@ export function BootstrapProvider({ children }: PropsWithChildren) {
       throw new Error("BOOTSTRAP_SIGNATURE_INVALID");
     }
     if (
-      signed.manifest.appInstallationKey !== compiled.tenant.appInstallationKey ||
       signed.manifest.hotelId !== compiled.tenant.hotelId ||
       signed.manifest.appId !== compiled.tenant.appId
     ) {
@@ -52,7 +51,8 @@ export function BootstrapProvider({ children }: PropsWithChildren) {
     setManifest(signed.manifest);
     const next = signed.manifest.maintenance.active
       ? "MAINTENANCE"
-      : isBelow(compiled.appVersion, signed.manifest.minimumVersion)
+      : signed.manifest.versionPolicy === "UPDATE_REQUIRED" ||
+          isBelow(compiled.appVersion, signed.manifest.minimumVersion)
         ? "UPDATE_REQUIRED"
         : source;
     setStatus(next);
@@ -66,7 +66,10 @@ export function BootstrapProvider({ children }: PropsWithChildren) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8_000);
       const response = await fetch(`${compiled.apiUrl}/v1/mobile/bootstrap`, {
-        headers: { "X-App-Installation-Key": compiled.tenant.appInstallationKey },
+        headers: {
+          "X-App-Installation-Key": compiled.tenant.appInstallationKey,
+          "X-App-Version": compiled.appVersion,
+        },
         signal: controller.signal,
       });
       clearTimeout(timeout);

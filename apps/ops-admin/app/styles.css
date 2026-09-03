@@ -104,12 +104,55 @@ label {
   font-weight: 650;
 }
 input,
-select {
+select,
+textarea {
   min-height: 48px;
   border: 1px solid #bdc9d3;
   border-radius: 10px;
   padding: 0 12px;
   font: inherit;
+}
+fieldset {
+  border: 1px solid #d9e2e9;
+  border-radius: 14px;
+  padding: 18px;
+}
+legend,
+h2 {
+  color: #294966;
+  font-size: 16px;
+  font-weight: 800;
+}
+small {
+  color: #64778b;
+}
+.status-message {
+  min-height: 24px;
+  color: #0b648a;
+  font-weight: 700;
+}
+.steps {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  align-items: center;
+  background: white;
+  border: 1px solid #e6ecf2;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+.status-pill {
+  background: #e8f3f6;
+  border-radius: 999px;
+  color: #0b648a;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 9px;
 }
 .full {
   grid-column: 1 / -1;

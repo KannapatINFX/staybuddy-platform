@@ -1,0 +1,64 @@
+{
+  "slug": "cc-phuket-residence",
+  "legalName": "CC Phuket Residence Co., Ltd.",
+  "displayName": "CC Phuket Residence",
+  "roomCount": 80,
+  "timezone": "Asia/Bangkok",
+  "countryCode": "TH",
+  "location": {
+    "name": "CC Phuket Residence",
+    "province": "Phuket",
+    "district": "Mueang Phuket"
+  },
+  "primaryContact": {
+    "name": "Synthetic Hotel Owner",
+    "email": "owner@cc-phuket.example",
+    "phone": "+66800000000"
+  },
+  "salesReference": "SYNTHETIC-CC-PHUKET",
+  "app": {
+    "appName": "CC Phuket Residence",
+    "scheme": "ccphuket",
+    "iosBundleIdentifier": "com.staybuddy.ccphuketresidence",
+    "androidPackage": "com.staybuddy.ccphuketresidence",
+    "minimumVersion": "1.0.0"
+  },
+  "brand": {
+    "theme": {
+      "primary": "#102A43",
+      "accent": "#C9A45C",
+      "canvas": "#FCF9F3",
+      "surfaceWarm": "#EFE6D7",
+      "ink": "#152535",
+      "divider": "#EDF1F3",
+      "logoUrl": "https://assets.example.invalid/cc-phuket-residence/logo.png",
+      "heroImageUrl": "https://assets.example.invalid/cc-phuket-residence/hero.jpg"
+    },
+    "supportedLocales": ["en", "th", "zh-CN", "ru"],
+    "defaultLocale": "en",
+    "voiceProfile": "FIVE_STAR_RESORT"
+  },
+  "departments": [
+    { "code": "FRONT", "name": "Front Desk", "defaultSlaMinutes": 10 },
+    { "code": "HOUSEKEEPING", "name": "Housekeeping", "defaultSlaMinutes": 15 },
+    { "code": "ENGINEERING", "name": "Engineering", "defaultSlaMinutes": 15 },
+    { "code": "FNB", "name": "Food & Beverage", "defaultSlaMinutes": 15 },
+    { "code": "SPA", "name": "Spa", "defaultSlaMinutes": 20 }
+  ],
+  "serviceCategories": [
+    { "code": "GUEST_REQUESTS", "name": "Guest Requests", "departmentCode": "FRONT" },
+    { "code": "ROOM_CARE", "name": "Room Care", "departmentCode": "HOUSEKEEPING" },
+    { "code": "MAINTENANCE", "name": "Maintenance", "departmentCode": "ENGINEERING" },
+    { "code": "DINING", "name": "Dining", "departmentCode": "FNB" },
+    { "code": "WELLNESS", "name": "Wellness", "departmentCode": "SPA" }
+  ],
+  "features": {
+    "guestShell": true,
+    "reservationCsv": true,
+    "stayClaim": true,
+    "emailOtp": true
+  },
+  "commercial": {
+    "discountMinor": 0
+  }
+}
