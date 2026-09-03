@@ -2,7 +2,7 @@
 
 **Sprint:** 6 — Hotel Onboarding and Remote Tenant Configuration  
 **Review date:** 3 September 2026  
-**Status:** CONDITIONAL — implementation and full local exit gate pass; hosted CI, dependency, and protected-main gates remain  
+**Status:** CONDITIONAL — implementation plus full local and hosted exit gates pass; dependency and protected-main gates remain
 **Next sprint:** Sprint 7 — not started
 
 ## Source reviewed
@@ -46,8 +46,20 @@ Observed evidence:
 - OpenAPI drift, dependency/fixture policy, app-factory validation for two synthetic identities, unchanged Terraform static validation, and secret scan across 201 source files pass.
 - No AWS, Hostinger, DNS, deployment, cloud resource, provider credential, production data, or legacy tracked file was accessed or changed.
 
+## Hosted CI evidence
+
+Stacked pull request [#4](https://github.com/KannapatINFX/staybuddy-platform/pull/4) at head commit `8951749577229f909fd1a12cd515c66735103deb` passed all four checks in [run 33727343769](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33727343769) on 3 September 2026:
+
+- `Required / Secret Scan`: PASS in 44s.
+- `Required / Migrations & Integration`: PASS in 1m14s against clean PostgreSQL/Redis services.
+- `Required / Quality`: PASS in 1m40s, including all 21 Sprint 6 controls and prior regression gates.
+- `Required / Build Artifacts`: PASS in 3m24s, including API and worker production Docker builds.
+- Artifact `staybuddy-build-6022621634b629dac3dd402fcda8d91f17b5df48` (ID `9882564426`, 79,477,759 bytes) is retained through 10 September 2026.
+
+The run's artifact/image tag uses GitHub's pull-request merge SHA; the reviewed feature-branch head remains the commit shown above. This PR intentionally targets the Sprint 5 branch and does not invoke the deployment workflow.
+
 ## Exit-gate decision
 
 The local repository-controlled Sprint 6 exit gate passes: Ops can create a complete synthetic hotel configuration and retrieve a signed, cacheable, tenant-pinned mobile bootstrap without editing source. Later onboarding steps intentionally remain pending because reservation mapping, knowledge, automation, billing, build, UAT, publish, pilot, and live behavior belong to later ordered sprints.
 
-Sprint 6 remains **CONDITIONAL**, not complete, until its stacked pull request passes all hosted checks and the Sprint 4→5→6 dependency chain is merged through protected `main` with independent approval. No hosting or deployment action is part of this Sprint 6 change.
+Sprint 6 remains **CONDITIONAL**, not complete, because the Sprint 4→5→6 dependency chain must still merge through protected `main` with independent approval and rerun required checks after retarget/rebase. No hosting or deployment action is part of this Sprint 6 change.

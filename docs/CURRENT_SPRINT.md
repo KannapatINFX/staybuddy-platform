@@ -2,7 +2,7 @@
 
 **Sprint:** 6 — Hotel Onboarding and Remote Tenant Configuration
 
-**Status:** CONDITIONAL — implementation and full local exit gate pass; hosted CI, independent approval, and prerequisite Sprint 4/5 gates remain
+**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; independent approval and prerequisite Sprint 4/5 gates remain
 
 **Updated:** 3 September 2026
 
@@ -15,12 +15,12 @@
 - Migration `0005_hotel_onboarding_config.sql`, ADR-0008, the onboarding/bootstrap runbook, updated OpenAPI, and 21 release-blocking Sprint 6 controls are present.
 - `pnpm ci:verify` passes against a new local PostgreSQL 17 database: five migrations, DB integration 12/12, API integration 6/6, typecheck/unit graph 21/21, builds 14/14, 15 artifact groups, two synthetic app configs, and secret scan across 201 source files.
 - No AWS, Hostinger, DNS, cloud environment, deployment, or production data was accessed or changed. Terraform was only initialized without backend and statically validated as an unchanged regression gate.
+- Stacked PR #4 at head `8951749` passes all four hosted checks in run `33727343769`, including clean PostgreSQL integration and both production Docker image builds.
 
 ## Remaining acceptance gates
 
-1. Commit and run all four hosted checks on a stacked Sprint 6 pull request targeting the Sprint 5 branch.
-2. Complete and merge Sprint 4, then Sprint 5, in dependency order without weakening their external deployment/review gates.
-3. Retarget/rebase Sprint 6 onto protected `main`, rerun required checks, obtain independent approval, and merge.
-4. Replace CC Phuket placeholder brand assets and synthetic contact values with approved production inputs only through an authorized onboarding run; this is not required for the synthetic Sprint 6 exit test.
+1. Complete and merge Sprint 4, then Sprint 5, in dependency order without weakening their external deployment/review gates.
+2. Retarget/rebase Sprint 6 onto protected `main`, rerun required checks, obtain independent approval, and merge.
+3. Replace CC Phuket placeholder brand assets and synthetic contact values with approved production inputs only through an authorized onboarding run; this is not required for the synthetic Sprint 6 exit test.
 
-The repository-controlled local Sprint 6 exit gate passes. Sprint 7 has not started.
+The repository-controlled local and hosted Sprint 6 exit gates pass. Sprint 7 has not started.
