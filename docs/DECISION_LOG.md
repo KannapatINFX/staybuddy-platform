@@ -13,5 +13,6 @@ This is the target-monorepo index of active architecture decisions. Canonical AD
 | 1 Sep 2026  | Separate runtime/migration identities and enforce scoped tenant/platform reliable mutations      | [ADR-0007](../../docs/adr/ADR-0007-tenant-security-runtime-and-reliable-mutations.md)  | Accepted |
 | 3 Sep 2026  | Use atomic complete onboarding and immutable signed/versioned public tenant configuration        | [ADR-0008](../../docs/adr/ADR-0008-versioned-hotel-onboarding-and-mobile-bootstrap.md) | Accepted |
 | 4 Sep 2026  | Pin every binary/deep link to one hotel and isolate deterministic app-build lanes                | [ADR-0009](../../docs/adr/ADR-0009-tenant-pinned-app-factory-and-build-lifecycle.md)   | Accepted |
+| 4 Sep 2026  | Stage encrypted source server-side and make reservation conflicts/retries deterministic          | [ADR-0010](../../docs/adr/ADR-0010-reservation-ingestion-trust-conflict-and-retry.md)  | Accepted |
 
 Sprint progress is not an ADR. See [`CURRENT_SPRINT.md`](CURRENT_SPRINT.md) and the sprint acceptance report for gate status.

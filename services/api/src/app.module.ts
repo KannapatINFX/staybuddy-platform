@@ -9,13 +9,19 @@ import { OAuthService } from "./oauth.service.js";
 import { PlatformController } from "./platform.controller.js";
 import { PlatformService } from "./platform.service.js";
 import { PrincipalService } from "./principal.service.js";
-import { ReservationController } from "./reservation.controller.js";
+import { ReservationController, ReservationOpsController } from "./reservation.controller.js";
 import { ReservationService } from "./reservation.service.js";
 import { SecurityService } from "./security.service.js";
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [HealthController, PlatformController, ReservationController, IdentityController],
+  controllers: [
+    HealthController,
+    PlatformController,
+    ReservationController,
+    ReservationOpsController,
+    IdentityController,
+  ],
   providers: [
     EmailDeliveryService,
     IdentityService,

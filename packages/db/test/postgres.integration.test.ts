@@ -148,6 +148,7 @@ describeWithDatabase("PostgreSQL tenant boundary", () => {
       "outbox_events",
       "audit_logs",
       "reservation_mapping_profiles",
+      "reservation_import_previews",
       "reservation_import_batches",
       "reservations",
       "reservation_rooms",

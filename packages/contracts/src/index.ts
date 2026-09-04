@@ -310,6 +310,7 @@ export const ImportMappingSchema = z
       confirmationCode: z.string(),
       guestName: z.string(),
       guestEmail: z.string().optional(),
+      guestPhone: z.string().optional(),
       nationality: z.string().optional(),
       preferredLanguage: z.string().optional(),
       checkInAt: z.string(),

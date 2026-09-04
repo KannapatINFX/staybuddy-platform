@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build",
     "artifacts:check": "node scripts/check-build-artifacts.mjs",
-    "ci:quality": "pnpm format:check && pnpm lint && pnpm dependencies:check && pnpm fixtures:check && pnpm contracts:check && pnpm infra:check && pnpm foundation:check && pnpm tenant-foundation:check && pnpm onboarding:check && pnpm app-factory:check && pnpm typecheck && pnpm test",
+    "ci:quality": "pnpm format:check && pnpm lint && pnpm dependencies:check && pnpm fixtures:check && pnpm contracts:check && pnpm infra:check && pnpm foundation:check && pnpm tenant-foundation:check && pnpm onboarding:check && pnpm app-factory:check && pnpm reservations:check && pnpm typecheck && pnpm test",
     "ci:verify": "pnpm ci:quality && pnpm migrations:check && pnpm db:migrate && pnpm test:integration && pnpm build && pnpm artifacts:check && pnpm app-factory:validate && pnpm secrets:check",
     "dev": "turbo run dev --parallel",
     "dependencies:check": "node scripts/check-dependency-policy.mjs",
@@ -33,6 +33,7 @@
     "db:migrate": "pnpm --filter @staybuddy/db migrate",
     "app-factory:validate": "tsx scripts/validate-app-factory.ts",
     "app-factory:check": "node scripts/check-sprint7-app-factory.mjs && pnpm app-factory:validate",
+    "reservations:check": "node scripts/check-sprint8-reservations.mjs",
     "app-factory:profile": "tsx scripts/generate-app-profile.ts",
     "app-factory:export:synthetic": "tsx scripts/export-synthetic-apps.ts",
     "tenant:onboard:synthetic": "tsx scripts/onboard-synthetic-hotel.ts"
