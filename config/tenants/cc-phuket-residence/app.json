@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 1,
   "hotelId": "hotel-cc-phuket",
   "appId": "app-cc-phuket",
   "slug": "cc-phuket-residence",
@@ -7,11 +8,37 @@
   "appInstallationKey": "cc-phuket-public-app-key-v1",
   "iosBundleIdentifier": "com.staybuddy.ccphuketresidence",
   "androidPackage": "com.staybuddy.ccphuketresidence",
-  "scheme": "ccphuket",
   "defaultLocale": "en",
   "supportedLocales": ["en", "th", "zh-CN", "ru"],
   "bootstrapPublicKeyHex": "4cb5abf6ad79fbf5abbccafcc269d85cd2651ed4b885b5869f241aedf0a5ba29",
-  "assetStatus": "PLACEHOLDER",
+  "deepLinks": {
+    "scheme": "ccphuket",
+    "universalLinkOrigin": "https://cc-phuket.example.invalid",
+    "installLandingUrl": "https://cc-phuket.example.invalid/install",
+    "allowedRoutes": ["welcome", "claim", "concierge", "services", "stay", "requests", "orders", "inbox"]
+  },
+  "assets": {
+    "status": "SYNTHETIC",
+    "icon": {
+      "path": "config/tenants/cc-phuket-residence/assets/icon.png",
+      "sha256": "bae5fadeb969a87c76506948ff556c55f323a48c251615a824e472e152dd891f",
+      "width": 1024,
+      "height": 1024
+    },
+    "adaptiveIcon": {
+      "path": "config/tenants/cc-phuket-residence/assets/adaptive-icon.png",
+      "sha256": "bae5fadeb969a87c76506948ff556c55f323a48c251615a824e472e152dd891f",
+      "width": 1024,
+      "height": 1024
+    },
+    "splash": {
+      "path": "config/tenants/cc-phuket-residence/assets/splash.png",
+      "sha256": "3e846e2394eebbce79429a892bfdd05a470aeae86bf186c95de48294e2675b11",
+      "width": 1284,
+      "height": 2778
+    }
+  },
+  "storeListingPath": "config/tenants/cc-phuket-residence/store-listing.json",
   "theme": {
     "primary": "#102A43",
     "accent": "#C9A45C",

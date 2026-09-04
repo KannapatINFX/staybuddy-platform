@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { generateAppProfile } from "./generate-app-profile";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tenants = ["cc-phuket-residence", "andaman-bay-demo"];
@@ -31,4 +32,5 @@ for (const tenant of tenants) {
     );
     child.on("error", reject);
   });
+  await generateAppProfile(tenant, "preview", `artifacts/apps/${tenant}/build-profile.json`);
 }

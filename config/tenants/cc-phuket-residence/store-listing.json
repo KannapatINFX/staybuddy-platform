@@ -1,0 +1,34 @@
+{
+  "privacyUrl": "https://cc-phuket.example.invalid/privacy",
+  "supportUrl": "https://cc-phuket.example.invalid/support",
+  "locales": [
+    {
+      "locale": "en",
+      "title": "CC Phuket Residence",
+      "subtitle": "Your hotel concierge",
+      "description": "Your private hotel companion for every stage of your stay at CC Phuket Residence.",
+      "keywords": ["hotel", "concierge", "phuket"]
+    },
+    {
+      "locale": "th",
+      "title": "CC Phuket Residence",
+      "subtitle": "ผู้ช่วยส่วนตัวระหว่างเข้าพัก",
+      "description": "ผู้ช่วยส่วนตัวของคุณสำหรับทุกช่วงเวลาการเข้าพักที่ CC Phuket Residence",
+      "keywords": ["โรงแรม", "ผู้ช่วย", "ภูเก็ต"]
+    },
+    {
+      "locale": "zh-CN",
+      "title": "CC Phuket Residence",
+      "subtitle": "您的酒店礼宾服务",
+      "description": "在 CC Phuket Residence 入住期间，为您提供贴心便捷的酒店礼宾服务。",
+      "keywords": ["酒店", "礼宾", "普吉岛"]
+    },
+    {
+      "locale": "ru",
+      "title": "CC Phuket Residence",
+      "subtitle": "Ваш отельный консьерж",
+      "description": "Ваш персональный помощник на каждом этапе проживания в CC Phuket Residence.",
+      "keywords": ["отель", "консьерж", "пхукет"]
+    }
+  ]
+}

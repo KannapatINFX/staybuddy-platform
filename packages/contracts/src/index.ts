@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export * from "./app-factory.js";
+
 export const IdentifierSchema = z.string().min(8).max(80);
 export const UtcDateTimeSchema = z.string().datetime({ offset: true });
 export const LocaleSchema = z.enum(["en", "th", "zh-CN", "ru"]);

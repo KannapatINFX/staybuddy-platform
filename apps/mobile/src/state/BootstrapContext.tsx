@@ -18,6 +18,8 @@ type BootstrapState = {
   refresh: () => Promise<BootstrapStatus>;
 };
 
+type BootstrapCacheEntry = { signed: unknown; etag?: string; cachedAt: string };
+
 const Context = createContext<BootstrapState | undefined>(undefined);
 
 function isBelow(current: string, minimum: string): boolean {
@@ -62,6 +64,15 @@ export function BootstrapProvider({ children }: PropsWithChildren) {
   const refresh = useCallback(async (): Promise<BootstrapStatus> => {
     setStatus("LOADING");
     const cacheKey = `staybuddy.bootstrap.${compiled.tenant.appId}`;
+    const cachedRaw = await AsyncStorage.getItem(cacheKey);
+    let cached: BootstrapCacheEntry | undefined;
+    if (cachedRaw) {
+      try {
+        cached = JSON.parse(cachedRaw) as BootstrapCacheEntry;
+      } catch {
+        await AsyncStorage.removeItem(cacheKey);
+      }
+    }
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -69,20 +80,27 @@ export function BootstrapProvider({ children }: PropsWithChildren) {
         headers: {
           "X-App-Installation-Key": compiled.tenant.appInstallationKey,
           "X-App-Version": compiled.appVersion,
+          ...(cached?.etag ? { "If-None-Match": cached.etag } : {}),
         },
         signal: controller.signal,
-      });
-      clearTimeout(timeout);
+      }).finally(() => clearTimeout(timeout));
+      if (response.status === 304 && cached) return accept(cached.signed, "CURRENT");
       if (!response.ok) throw new Error("BOOTSTRAP_REQUEST_FAILED");
       const raw: unknown = await response.json();
       const next = await accept(raw, "CURRENT");
-      await AsyncStorage.setItem(cacheKey, JSON.stringify(raw));
+      await AsyncStorage.setItem(
+        cacheKey,
+        JSON.stringify({
+          signed: raw,
+          ...(response.headers.get("etag") ? { etag: response.headers.get("etag")! } : {}),
+          cachedAt: new Date().toISOString(),
+        } satisfies BootstrapCacheEntry),
+      );
       return next;
     } catch {
-      const cached = await AsyncStorage.getItem(cacheKey);
       if (cached) {
         try {
-          return await accept(JSON.parse(cached) as unknown, "CACHED");
+          return await accept(cached.signed, "CACHED");
         } catch {
           await AsyncStorage.removeItem(cacheKey);
         }

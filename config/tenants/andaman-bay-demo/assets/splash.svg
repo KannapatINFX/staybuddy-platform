@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1284" height="2778" viewBox="0 0 1284 2778">
+  <rect width="1284" height="2778" fill="#FFF9EF"/>
+  <circle cx="642" cy="1120" r="270" fill="#123B3A"/>
+  <circle cx="642" cy="1060" r="94" fill="#D2A85A"/>
+  <path d="M430 1240c71-70 142-70 213 0s142 70 213 0v122H430v-122Z" fill="#FFF9EF"/>
+  <text x="642" y="1600" text-anchor="middle" font-family="Arial, sans-serif" font-size="78" font-weight="700" fill="#123B3A">Andaman Bay</text>
+  <text x="642" y="1692" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#526F6D">Synthetic preview asset</text>
+</svg>

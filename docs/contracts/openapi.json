@@ -302,9 +302,57 @@
         }
       }
     },
-    "/ops/app-builds": {
-      "post": {
-        "operationId": "createAppBuild",
+    "/ops/app-factory": {
+      "get": {
+        "operationId": "listAppFactory",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AppFactorySummary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppFactorySummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/hotel-apps/{hotelAppId}/build-config": {
+      "patch": {
+        "operationId": "configureHotelAppBuild",
+        "parameters": [
+          {
+            "name": "hotelAppId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -315,18 +363,18 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppBuildCommand"
+                "$ref": "#/components/schemas/ConfigureHotelAppBuild"
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "AppBuildReceipt",
+          "200": {
+            "description": "AppBuildMutationReceipt",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AppBuildReceipt"
+                  "$ref": "#/components/schemas/AppBuildMutationReceipt"
                 }
               }
             }
@@ -342,6 +390,253 @@
             }
           },
           "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/app-builds": {
+      "get": {
+        "operationId": "listAppBuilds",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AppBuild",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppBuild"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAppBuild",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppBuild"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AppBuildMutationReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppBuildMutationReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/app-builds/{buildJobId}": {
+      "get": {
+        "operationId": "getAppBuild",
+        "parameters": [
+          {
+            "name": "buildJobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AppBuildDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppBuildDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/app-builds/{buildJobId}/status": {
+      "patch": {
+        "operationId": "updateAppBuildStatus",
+        "parameters": [
+          {
+            "name": "buildJobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppBuildStatus"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AppBuildMutationReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppBuildMutationReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
             "description": "ApiError",
             "content": {
               "application/json": {
@@ -3107,19 +3402,255 @@
         ],
         "additionalProperties": false
       },
-      "AppBuildCommand": {
+      "ConfigureHotelAppBuild": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "deepLinks": {
+            "type": "object",
+            "properties": {
+              "scheme": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "universalLinkOrigin": {
+                "type": "string",
+                "format": "uri"
+              },
+              "installLandingUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "allowedRoutes": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "welcome",
+                    "claim",
+                    "concierge",
+                    "services",
+                    "stay",
+                    "requests",
+                    "orders",
+                    "inbox"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "scheme",
+              "universalLinkOrigin",
+              "installLandingUrl",
+              "allowedRoutes"
+            ],
+            "additionalProperties": false
+          },
+          "assets": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "SYNTHETIC",
+                  "APPROVED"
+                ]
+              },
+              "icon": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "width": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "height": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "width",
+                  "height"
+                ],
+                "additionalProperties": false
+              },
+              "adaptiveIcon": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "width": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "height": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "width",
+                  "height"
+                ],
+                "additionalProperties": false
+              },
+              "splash": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "width": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "height": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "width",
+                  "height"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "status",
+              "icon",
+              "adaptiveIcon",
+              "splash"
+            ],
+            "additionalProperties": false
+          },
+          "storeListing": {
+            "type": "object",
+            "properties": {
+              "privacyUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "supportUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "locales": {
+                "minItems": 4,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "locale": {
+                      "type": "string",
+                      "enum": [
+                        "en",
+                        "th",
+                        "zh-CN",
+                        "ru"
+                      ]
+                    },
+                    "title": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 30
+                    },
+                    "subtitle": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 30
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 4000
+                    },
+                    "keywords": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 30
+                      }
+                    }
+                  },
+                  "required": [
+                    "locale",
+                    "title",
+                    "subtitle",
+                    "description",
+                    "keywords"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "privacyUrl",
+              "supportUrl",
+              "locales"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "deepLinks",
+          "assets",
+          "storeListing"
+        ],
+        "additionalProperties": false
+      },
+      "CreateAppBuild": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
           "hotelId": {
             "type": "string",
-            "minLength": 8,
-            "maxLength": 80
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           },
           "hotelAppId": {
             "type": "string",
-            "minLength": 8,
-            "maxLength": 80
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           },
           "platform": {
             "type": "string",
@@ -3137,7 +3668,12 @@
             ]
           },
           "version": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "commitSha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{7,64}$"
           }
         },
         "required": [
@@ -3145,27 +3681,478 @@
           "hotelAppId",
           "platform",
           "profile",
-          "version"
+          "version",
+          "commitSha"
         ],
         "additionalProperties": false
       },
-      "AppBuildReceipt": {
+      "UpdateAppBuildStatus": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "buildJobId": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALIDATING",
+              "BUILDING",
+              "BUILT",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "providerReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "artifactReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "failureCode": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]+$"
+          },
+          "validationSummary": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "AppFactorySummary": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "hotelId": {
             "type": "string",
             "minLength": 8,
             "maxLength": 80
           },
-          "status": {
+          "hotelName": {
+            "type": "string"
+          },
+          "hotelAppId": {
             "type": "string",
-            "const": "QUEUED"
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "appName": {
+            "type": "string"
+          },
+          "iosBundleIdentifier": {
+            "type": "string"
+          },
+          "androidPackage": {
+            "type": "string"
+          },
+          "scheme": {
+            "type": "string"
+          },
+          "buildConfigStatus": {
+            "type": "string"
+          },
+          "assetStatus": {
+            "type": "string"
+          },
+          "buildConfigVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "latestBuildStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latestBuildUpdatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "buildJobId",
-          "status"
+          "hotelId",
+          "hotelName",
+          "hotelAppId",
+          "appName",
+          "iosBundleIdentifier",
+          "androidPackage",
+          "scheme",
+          "buildConfigStatus",
+          "assetStatus",
+          "buildConfigVersion",
+          "latestBuildStatus",
+          "latestBuildUpdatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "AppBuild": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelAppId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "appName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "IOS",
+              "ANDROID"
+            ]
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "DEVELOPMENT",
+              "PREVIEW",
+              "PRODUCTION"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "VALIDATING",
+              "BUILDING",
+              "BUILT",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "commitSha": {
+            "type": "string"
+          },
+          "sourceConfigVersion": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "providerReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "artifactReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failureCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "validationSummary": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "hotelId",
+          "hotelAppId",
+          "hotelName",
+          "appName",
+          "platform",
+          "profile",
+          "status",
+          "version",
+          "commitSha",
+          "sourceConfigVersion",
+          "providerReference",
+          "artifactReference",
+          "failureCode",
+          "validationSummary",
+          "requestedBy",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "AppBuildDetail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "build": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "hotelId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "hotelAppId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              "hotelName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "appName": {
+                "type": "string",
+                "minLength": 1
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "IOS",
+                  "ANDROID"
+                ]
+              },
+              "profile": {
+                "type": "string",
+                "enum": [
+                  "DEVELOPMENT",
+                  "PREVIEW",
+                  "PRODUCTION"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "QUEUED",
+                  "VALIDATING",
+                  "BUILDING",
+                  "BUILT",
+                  "FAILED",
+                  "CANCELLED"
+                ]
+              },
+              "version": {
+                "type": "string"
+              },
+              "commitSha": {
+                "type": "string"
+              },
+              "sourceConfigVersion": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "providerReference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "artifactReference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "failureCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "validationSummary": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              "requestedBy": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              }
+            },
+            "required": [
+              "id",
+              "hotelId",
+              "hotelAppId",
+              "hotelName",
+              "appName",
+              "platform",
+              "profile",
+              "status",
+              "version",
+              "commitSha",
+              "sourceConfigVersion",
+              "providerReference",
+              "artifactReference",
+              "failureCode",
+              "validationSummary",
+              "requestedBy",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": false
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 80
+                },
+                "priorStatus": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status": {
+                  "type": "string"
+                },
+                "providerReference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "artifactReference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "failureCode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "validationSummary": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "actorId": {
+                  "type": "string"
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "id",
+                "priorStatus",
+                "status",
+                "providerReference",
+                "artifactReference",
+                "failureCode",
+                "validationSummary",
+                "actorId",
+                "occurredAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "build",
+          "events"
+        ],
+        "additionalProperties": false
+      },
+      "AppBuildMutationReceipt": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "body": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "body",
+          "replayed"
         ],
         "additionalProperties": false
       },

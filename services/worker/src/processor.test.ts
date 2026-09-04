@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { processDomainEvent } from "./processor.js";
+import { processAppBuildJob, processDomainEvent } from "./processor.js";
 
 describe("worker unit-test harness", () => {
   it("returns a deterministic receipt for a synthetic domain event", async () => {
@@ -11,6 +11,30 @@ describe("worker unit-test harness", () => {
     ).resolves.toEqual({
       processed: true,
       eventId: "event-synthetic-1",
+    });
+  });
+
+  it("keeps one hotel build failure isolated from another hotel lane", async () => {
+    const base = {
+      hotelAppId: "hotel-app-synthetic",
+      platform: "IOS" as const,
+      tenantSlug: "synthetic-hotel",
+      profile: "PREVIEW" as const,
+      commitSha: "abcdef1234567",
+    };
+    const [failed, built] = await Promise.all([
+      processAppBuildJob({ ...base, buildJobId: "build-hotel-a", hotelId: "hotel-a" }, async () => {
+        throw new Error("ASSET_VALIDATION_FAILED");
+      }),
+      processAppBuildJob({ ...base, buildJobId: "build-hotel-b", hotelId: "hotel-b" }, async (job) => ({
+        artifactReference: `local://${job.buildJobId}`,
+      })),
+    ]);
+    expect(failed).toMatchObject({ buildJobId: "build-hotel-a", status: "FAILED" });
+    expect(built).toEqual({
+      buildJobId: "build-hotel-b",
+      status: "BUILT",
+      artifactReference: "local://build-hotel-b",
     });
   });
 });

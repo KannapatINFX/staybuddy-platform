@@ -1,12 +1,15 @@
 import { z } from "zod";
 import {
   ApiErrorSchema,
+  AppBuildSchema,
   BootstrapManifestSchema,
   CanonicalReservationSchema,
   ClaimCompleteCommandSchema,
   ClaimScanRequestSchema,
   ClaimSessionSchema,
+  ConfigureHotelAppBuildSchema,
   ConsentCommandSchema,
+  CreateAppBuildSchema,
   EmailOtpStartSchema,
   EmailOtpVerifySchema,
   HotelConfigurationSchema,
@@ -18,6 +21,7 @@ import {
   OAuthIdentityAssertionSchema,
   PushPermissionCommandSchema,
   SignedBootstrapManifestSchema,
+  UpdateAppBuildStatusSchema,
   UtcDateTimeSchema,
 } from "./index.js";
 
@@ -121,14 +125,37 @@ const ReservationSummarySchema = z.object({
   roomType: z.string().nullable(),
   roomNumber: z.string().nullable(),
 });
-const AppBuildCommandSchema = z.object({
-  hotelId: IdentifierSchema,
-  hotelAppId: IdentifierSchema,
-  platform: z.enum(["IOS", "ANDROID"]),
-  profile: z.enum(["DEVELOPMENT", "PREVIEW", "PRODUCTION"]),
-  version: z.string(),
+const AppBuildMutationReceiptSchema = z.object({
+  status: z.number().int(),
+  body: z.record(z.string(), z.unknown()),
+  replayed: z.boolean(),
 });
-const AppBuildReceiptSchema = z.object({ buildJobId: IdentifierSchema, status: z.literal("QUEUED") });
+const AppFactorySummarySchema = z.object({
+  hotelId: IdentifierSchema,
+  hotelName: z.string(),
+  hotelAppId: IdentifierSchema,
+  appName: z.string(),
+  iosBundleIdentifier: z.string(),
+  androidPackage: z.string(),
+  scheme: z.string(),
+  buildConfigStatus: z.string(),
+  assetStatus: z.string(),
+  buildConfigVersion: z.number().int().positive(),
+  latestBuildStatus: z.string().nullable(),
+  latestBuildUpdatedAt: UtcDateTimeSchema.nullable(),
+});
+const AppBuildEventSchema = z.object({
+  id: IdentifierSchema,
+  priorStatus: z.string().nullable(),
+  status: z.string(),
+  providerReference: z.string().nullable(),
+  artifactReference: z.string().nullable(),
+  failureCode: z.string().nullable(),
+  validationSummary: z.record(z.string(), z.unknown()),
+  actorId: z.string(),
+  occurredAt: UtcDateTimeSchema,
+});
+const AppBuildDetailSchema = z.object({ build: AppBuildSchema, events: z.array(AppBuildEventSchema) });
 
 const schemas = {
   ApiError: ApiErrorSchema,
@@ -141,8 +168,13 @@ const schemas = {
   HotelDetail: HotelDetailSchema,
   PublishedConfig: PublishedConfigSchema,
   HotelSummary: HotelSummarySchema,
-  AppBuildCommand: AppBuildCommandSchema,
-  AppBuildReceipt: AppBuildReceiptSchema,
+  ConfigureHotelAppBuild: ConfigureHotelAppBuildSchema,
+  CreateAppBuild: CreateAppBuildSchema,
+  UpdateAppBuildStatus: UpdateAppBuildStatusSchema,
+  AppFactorySummary: AppFactorySummarySchema,
+  AppBuild: AppBuildSchema,
+  AppBuildDetail: AppBuildDetailSchema,
+  AppBuildMutationReceipt: AppBuildMutationReceiptSchema,
   CanonicalReservation: CanonicalReservationSchema,
   ReservationPreviewInput: ReservationPreviewInputSchema,
   ReservationCommitInput: ReservationCommitInputSchema,
@@ -198,10 +230,30 @@ export function createOpenApiDocument() {
         "PublishedConfig",
         "hotelId",
       ),
-      "/ops/app-builds": post("createAppBuild", "AppBuildCommand", "AppBuildReceipt", {
-        secured: true,
-        status: "201",
-      }),
+      "/ops/app-factory": { get: securedGet("listAppFactory", "AppFactorySummary", true) },
+      "/ops/hotel-apps/{hotelAppId}/build-config": patch(
+        "configureHotelAppBuild",
+        "ConfigureHotelAppBuild",
+        "AppBuildMutationReceipt",
+        "hotelAppId",
+      ),
+      "/ops/app-builds": {
+        get: securedGet("listAppBuilds", "AppBuild", true),
+        ...post("createAppBuild", "CreateAppBuild", "AppBuildMutationReceipt", {
+          secured: true,
+          idempotent: true,
+          status: "201",
+        }),
+      },
+      "/ops/app-builds/{buildJobId}": {
+        get: securedGetWithPath("getAppBuild", "AppBuildDetail", "buildJobId"),
+      },
+      "/ops/app-builds/{buildJobId}/status": patch(
+        "updateAppBuildStatus",
+        "UpdateAppBuildStatus",
+        "AppBuildMutationReceipt",
+        "buildJobId",
+      ),
       "/admin/reservation-imports/preview": post(
         "previewReservationImport",
         "ReservationPreviewInput",

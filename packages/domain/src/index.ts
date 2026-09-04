@@ -12,6 +12,7 @@ export class DomainRuleError extends Error {
 
 export const platformRoles = [
   "STAYBUDDY_SUPER_ADMIN",
+  "STAYBUDDY_APP_OPS",
   "STAYBUDDY_CONTENT_OPS",
   "STAYBUDDY_FINANCE",
   "STAYBUDDY_SUPPORT",
@@ -31,7 +32,9 @@ export type PlatformPermission =
   | "platform.hotels.read"
   | "platform.hotels.create"
   | "platform.hotels.configure"
-  | "platform.app-builds.create";
+  | "platform.app-builds.read"
+  | "platform.app-builds.create"
+  | "platform.app-builds.update";
 export type HotelPermission =
   | "hotel.reservations.read"
   | "hotel.reservations.write"
@@ -42,8 +45,27 @@ const platformPermissions: Readonly<Record<PlatformPermission, readonly Platform
   "platform.hotels.read": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_SUPPORT"],
   "platform.hotels.create": ["STAYBUDDY_SUPER_ADMIN"],
   "platform.hotels.configure": ["STAYBUDDY_SUPER_ADMIN"],
-  "platform.app-builds.create": ["STAYBUDDY_SUPER_ADMIN"],
+  "platform.app-builds.read": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_APP_OPS", "STAYBUDDY_SUPPORT"],
+  "platform.app-builds.create": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_APP_OPS"],
+  "platform.app-builds.update": ["STAYBUDDY_SUPER_ADMIN", "STAYBUDDY_APP_OPS"],
 };
+
+export type AppBuildStatus = "QUEUED" | "VALIDATING" | "BUILDING" | "BUILT" | "FAILED" | "CANCELLED";
+
+const appBuildTransitions: Readonly<Record<AppBuildStatus, readonly AppBuildStatus[]>> = {
+  QUEUED: ["VALIDATING", "CANCELLED"],
+  VALIDATING: ["BUILDING", "FAILED", "CANCELLED"],
+  BUILDING: ["BUILT", "FAILED", "CANCELLED"],
+  BUILT: [],
+  FAILED: [],
+  CANCELLED: [],
+};
+
+export function assertAppBuildTransition(from: AppBuildStatus, to: AppBuildStatus): void {
+  if (!appBuildTransitions[from].includes(to)) {
+    throw new DomainRuleError("INVALID_APP_BUILD_TRANSITION", `${from} cannot transition to ${to}`);
+  }
+}
 
 const hotelPermissions: Readonly<Record<HotelPermission, readonly HotelRole[]>> = {
   "hotel.reservations.read": ["HOTEL_OWNER", "HOTEL_ADMIN", "FRONT_DESK"],

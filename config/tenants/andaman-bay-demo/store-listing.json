@@ -1,0 +1,34 @@
+{
+  "privacyUrl": "https://andaman-bay.example.invalid/privacy",
+  "supportUrl": "https://andaman-bay.example.invalid/support",
+  "locales": [
+    {
+      "locale": "en",
+      "title": "Andaman Bay",
+      "subtitle": "Your seaside concierge",
+      "description": "A calm hotel companion for services and support throughout your Andaman Bay stay.",
+      "keywords": ["hotel", "concierge", "andaman"]
+    },
+    {
+      "locale": "th",
+      "title": "Andaman Bay",
+      "subtitle": "ผู้ช่วยส่วนตัวริมทะเล",
+      "description": "ผู้ช่วยส่วนตัวสำหรับบริการและการดูแลตลอดการเข้าพักที่ Andaman Bay",
+      "keywords": ["โรงแรม", "ผู้ช่วย", "อันดามัน"]
+    },
+    {
+      "locale": "zh-CN",
+      "title": "Andaman Bay",
+      "subtitle": "您的海滨礼宾服务",
+      "description": "在 Andaman Bay 入住期间，为您提供从容贴心的酒店服务与协助。",
+      "keywords": ["酒店", "礼宾", "安达曼"]
+    },
+    {
+      "locale": "ru",
+      "title": "Andaman Bay",
+      "subtitle": "Ваш морской консьерж",
+      "description": "Спокойный помощник по услугам и поддержке во время вашего отдыха в Andaman Bay.",
+      "keywords": ["отель", "консьерж", "андаман"]
+    }
+  ]
+}

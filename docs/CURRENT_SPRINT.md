@@ -1,26 +1,29 @@
 # Current Sprint
 
-**Sprint:** 6 — Hotel Onboarding and Remote Tenant Configuration
+**Sprint:** 7 — White-Label App Factory Baseline
 
-**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; independent approval and prerequisite Sprint 4/5 gates remain
+**Status:** CONDITIONAL — implementation and local exit gate pass; hosted, dependency, protected-main, approved-asset, and signed-native-build gates remain
 
-**Updated:** 3 September 2026
+**Updated:** 4 September 2026
 
 ## Completed and verified locally
 
-- One strict `CreateHotelInput` now creates hotel/location, encrypted primary contact, sales reference, room/commercial baseline, app identity, brand/voice/four locales, departments, initial service categories, features, configuration version 1, onboarding progress, audit, and outbox evidence in one idempotent transaction.
-- Published public configuration is versioned, immutable, secret-free, atomic, auditable, and exposed through an idempotent update API.
-- Mobile bootstrap resolves a hashed per-app key, pins hotel/app identity, uses Ed25519 verification, carries config/minimum-version/maintenance policy, and supports private caching with `ETag`, `Vary`, 304 revalidation, expiry, and safe cached fallback.
-- Ops screens cover the live hotel directory, complete hotel creation, overview, and onboarding progress. A synthetic CC Phuket onboarding fixture and API command require no source edit.
-- Migration `0005_hotel_onboarding_config.sql`, ADR-0008, the onboarding/bootstrap runbook, updated OpenAPI, and 21 release-blocking Sprint 6 controls are present.
-- `pnpm ci:verify` passes against a new local PostgreSQL 17 database: five migrations, DB integration 12/12, API integration 6/6, typecheck/unit graph 21/21, builds 14/14, 15 artifact groups, two synthetic app configs, and secret scan across 201 source files.
-- No AWS, Hostinger, DNS, cloud environment, deployment, or production data was accessed or changed. Terraform was only initialized without backend and statically validated as an unchanged regression gate.
-- Stacked PR #4 at head `8951749` passes all four hosted checks in run `33727343769`, including clean PostgreSQL integration and both production Docker image builds.
+- One Expo mobile codebase now compiles strict hotel-pinned app identity, icon/splash assets, universal/app links, installation key, and four-locale store metadata.
+- Two synthetic hotel apps export successfully for iOS, Android, and web with distinct identifiers, schemes, hosts, assets, and generated build profiles.
+- Runtime bootstrap and local cache remain signed and tenant/app pinned, support ETag/304, and reject cross-hotel or expired fallback.
+- Deep-link handling rejects another hotel's host, tenant overrides, unknown routes, and hotel-selector behavior.
+- App Factory contracts, migration `0006`, deterministic build state machine, one-active-lane rule, append-only status events, idempotency, audit/outbox, and isolated worker failure handling are implemented.
+- `STAYBUDDY_APP_OPS` is verified end to end with narrowly scoped RLS; Support can read build detail but cannot queue or mutate builds.
+- Ops screens cover App Factory dashboard/configuration and build queue/detail/history (`SB-O-017` through `SB-O-020`).
+- ADR-0009, the App Factory operations runbook, updated OpenAPI, and 22 release-blocking Sprint 7 controls are present.
+- `pnpm ci:verify` passes against a new local PostgreSQL 17 database: six migrations, DB integration 12/12, API integration 7/7, production builds, 15 artifact groups, two validated synthetic app identities, and secret scan.
+- Production validation intentionally blocks synthetic assets. No AWS, Hostinger, DNS, EAS cloud build, signing, store, deployment, or production data was accessed or changed.
 
 ## Remaining acceptance gates
 
-1. Complete and merge Sprint 4, then Sprint 5, in dependency order without weakening their external deployment/review gates.
-2. Retarget/rebase Sprint 6 onto protected `main`, rerun required checks, obtain independent approval, and merge.
-3. Replace CC Phuket placeholder brand assets and synthetic contact values with approved production inputs only through an authorized onboarding run; this is not required for the synthetic Sprint 6 exit test.
+1. Create the stacked Sprint 7 pull request against Sprint 6 and pass all required hosted checks.
+2. Complete and merge Sprints 4, 5, and 6 in dependency order; retarget/rebase Sprint 7 onto protected `main`, rerun required checks, obtain independent approval, and merge.
+3. Replace synthetic assets, placeholder domains, and store/legal metadata with approved production inputs; provision signing credentials through the later authorized publishing workflow.
+4. Produce signed iOS/Android binaries and complete native-device, deep-link, install-link, and store-readiness QA before any hotel app can ship.
 
-The repository-controlled local and hosted Sprint 6 exit gates pass. Sprint 7 has not started.
+The repository-controlled local Sprint 7 exit gate passes. Sprint 8 has not started.
