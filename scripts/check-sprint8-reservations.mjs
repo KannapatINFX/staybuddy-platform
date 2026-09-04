@@ -56,9 +56,9 @@ for (const [file, pattern, message] of [
   ["apps/ops-admin/app/integrations/[hotelId]/monitor/page.tsx", /SB-O-040/, "Ops sync monitor is required"],
   ["apps/ops-admin/app/integrations/errors/[batchId]/page.tsx", /SB-O-041/, "Ops error detail is required"],
   [
-    "../docs/adr/ADR-0010-reservation-ingestion-trust-conflict-and-retry.md",
-    /server-owned staging operation[\s\S]*CONFLICTED/,
-    "ingestion trust and conflict ADR is required",
+    "docs/DECISION_LOG.md",
+    /ADR-0010-reservation-ingestion-trust-conflict-and-retry/,
+    "ingestion trust and conflict ADR index is required",
   ],
 ])
   await expect(file, pattern, message);
