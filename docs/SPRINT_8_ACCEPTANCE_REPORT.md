@@ -2,7 +2,7 @@
 
 **Sprint:** 8 — Reservation Ingestion and Stay Preparation  
 **Review date:** 4 September 2026  
-**Status:** CONDITIONAL — implementation and full local exit gate pass; dependency, protected-main, and hosted-PR gates remain
+**Status:** CONDITIONAL — implementation plus full local and hosted exit gates pass; dependency and protected-main gates remain
 
 **Next sprint:** Sprint 9 — not started
 
@@ -42,8 +42,20 @@ CI=true DATABASE_URL='<fresh-postgres-url>' REDIS_URL='<local-test-url>' pnpm ci
 - Typecheck/unit graphs, Hotel/Ops/mobile/API/worker builds, 15 artifacts, OpenAPI drift, dependency/fixture policy, Terraform static validation, and secret scan passed.
 - No AWS, Hostinger, DNS, deployment, EAS cloud build, signing credential, store, production data, or legacy tracked file was changed.
 
+## Hosted CI evidence
+
+Stacked pull request [#6](https://github.com/KannapatINFX/staybuddy-platform/pull/6) at head `7799df431eac5041c32e3bc10a37d39b41767373` passed all four checks in [run 33890213508](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33890213508) on 4 September 2026:
+
+- `Required / Quality`: PASS in 1m38s, including all 16 Sprint 8 controls and prior regression gates.
+- `Required / Secret Scan`: PASS in 29s.
+- `Required / Migrations & Integration`: PASS in 58s against clean PostgreSQL/Redis services, including DB 12/12 and API 7/7.
+- `Required / Build Artifacts`: PASS in 3m45s, including 15 artifact groups and both production Docker image builds.
+- Artifact `staybuddy-build-b0b4ae3fe402c7d2f964ec83c2461dcd20bf9cff` (ID `9943674225`, 85,861,604 bytes, SHA-256 `7f4960d28d7084e3600a5407e4dd229c981388a77afd29aed5e2547d4d52c343`) is retained through 11 September 2026.
+
+The PR is clean and intentionally targets the Sprint 7 branch. It does not invoke deployment.
+
 ## Exit-gate decision
 
 The local Sprint 8 exit gate passes: clean, duplicate, updated, stale-conflicted, and partially rejected CSV inputs behave predictably; valid rows create upcoming stays; mappings are reusable; retry history is retained; manual entry cannot spoof connector provenance; Hotel and Ops can see actionable state.
 
-Sprint 8 remains **CONDITIONAL** until its stacked pull request passes hosted checks and the dependency/protected-main approval path completes. This sprint does not authorize hosting, cloud deployment, or production ingestion.
+Sprint 8 remains **CONDITIONAL** until the dependency/protected-main approval path completes. This sprint does not authorize hosting, cloud deployment, or production ingestion.
