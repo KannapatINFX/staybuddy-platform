@@ -2,7 +2,8 @@
 
 **Sprint:** 7 — White-Label App Factory Baseline  
 **Review date:** 4 September 2026  
-**Status:** CONDITIONAL — implementation and full local exit gate pass; hosted, dependency, protected-main, approved-asset, and signed-native-build gates remain  
+**Status:** CONDITIONAL — implementation plus full local and hosted exit gates pass; dependency, protected-main, approved-asset, and signed-native-build gates remain
+
 **Next sprint:** Sprint 8 — not started
 
 ## Source reviewed
@@ -52,10 +53,18 @@ Observed evidence:
 
 ## Hosted CI evidence
 
-Pending creation and completion of the stacked Sprint 7 pull request. The pull request must target the Sprint 6 branch so it cannot bypass prerequisite acceptance.
+Stacked pull request [#5](https://github.com/KannapatINFX/staybuddy-platform/pull/5) at head commit `f3e7ee12c90761bdeb4b0288af6028634cd96152` passed all four checks in [run 33828717023](https://github.com/KannapatINFX/staybuddy-platform/actions/runs/33828717023) on 4 September 2026:
+
+- `Required / Quality`: PASS in 4m08s, including all 22 Sprint 7 controls and prior regression gates.
+- `Required / Secret Scan`: PASS in 4m17s.
+- `Required / Build Artifacts`: PASS in 7m33s, including 15 artifact groups, two validated app identities, and API/worker production Docker images.
+- `Required / Migrations & Integration`: PASS in 8m13s against clean PostgreSQL/Redis services, including DB 12/12 and API 7/7.
+- Artifact `staybuddy-build-8487b06a3fb7c8c0b03a0aa6ef580a8717f4291e` (ID `9921028523`, 80,438,336 bytes, SHA-256 `aa70a15270aa9d08a876c674b57fb281e04f28fffafa62366019440921961feb`) is retained through 11 September 2026.
+
+The artifact/image tag uses GitHub's pull-request merge SHA; the reviewed feature-branch head remains the commit shown above. This pull request intentionally targets the Sprint 6 branch and does not invoke the deployment workflow.
 
 ## Exit-gate decision
 
 The repository-controlled Sprint 7 exit gate passes locally: two synthetic hotel apps build from one codebase with distinct native and link identities, and neither configuration, navigation, bootstrap, nor deep-link input can switch tenant in-app. A failure in one hotel's build lane does not block another hotel.
 
-Sprint 7 remains **CONDITIONAL**, not complete. Hosted CI evidence, the ordered Sprint 4→5→6→7 merge path, protected-main independent approval, approved production brand/legal assets, real signing credentials, and signed native binary/device verification remain required before a production app release. This sprint does not authorize or perform hosting, cloud deployment, EAS execution, or store submission.
+Sprint 7 remains **CONDITIONAL**, not complete. The ordered Sprint 4→5→6→7 merge path, protected-main independent approval, approved production brand/legal assets, real signing credentials, and signed native binary/device verification remain required before a production app release. This sprint does not authorize or perform hosting, cloud deployment, EAS execution, or store submission.

@@ -2,7 +2,7 @@
 
 **Sprint:** 7 — White-Label App Factory Baseline
 
-**Status:** CONDITIONAL — implementation and local exit gate pass; hosted, dependency, protected-main, approved-asset, and signed-native-build gates remain
+**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; dependency, protected-main, approved-asset, and signed-native-build gates remain
 
 **Updated:** 4 September 2026
 
@@ -17,13 +17,13 @@
 - Ops screens cover App Factory dashboard/configuration and build queue/detail/history (`SB-O-017` through `SB-O-020`).
 - ADR-0009, the App Factory operations runbook, updated OpenAPI, and 22 release-blocking Sprint 7 controls are present.
 - `pnpm ci:verify` passes against a new local PostgreSQL 17 database: six migrations, DB integration 12/12, API integration 7/7, production builds, 15 artifact groups, two validated synthetic app identities, and secret scan.
+- Stacked PR #5 at head `f3e7ee1` passes all four hosted checks in run `33828717023`, including clean PostgreSQL/Redis integration and both production Docker image builds.
 - Production validation intentionally blocks synthetic assets. No AWS, Hostinger, DNS, EAS cloud build, signing, store, deployment, or production data was accessed or changed.
 
 ## Remaining acceptance gates
 
-1. Create the stacked Sprint 7 pull request against Sprint 6 and pass all required hosted checks.
-2. Complete and merge Sprints 4, 5, and 6 in dependency order; retarget/rebase Sprint 7 onto protected `main`, rerun required checks, obtain independent approval, and merge.
-3. Replace synthetic assets, placeholder domains, and store/legal metadata with approved production inputs; provision signing credentials through the later authorized publishing workflow.
-4. Produce signed iOS/Android binaries and complete native-device, deep-link, install-link, and store-readiness QA before any hotel app can ship.
+1. Complete and merge Sprints 4, 5, and 6 in dependency order; retarget/rebase Sprint 7 onto protected `main`, rerun required checks, obtain independent approval, and merge.
+2. Replace synthetic assets, placeholder domains, and store/legal metadata with approved production inputs; provision signing credentials through the later authorized publishing workflow.
+3. Produce signed iOS/Android binaries and complete native-device, deep-link, install-link, and store-readiness QA before any hotel app can ship.
 
 The repository-controlled local Sprint 7 exit gate passes. Sprint 8 has not started.
