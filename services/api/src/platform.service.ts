@@ -2,13 +2,19 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import {
   BootstrapManifestSchema,
+  ConfigureHotelAppBuildSchema,
+  CreateAppBuildSchema,
   CreateHotelInputSchema,
   PublishHotelConfigSchema,
   signBootstrapManifest,
+  UpdateAppBuildStatusSchema,
+  type AppBuild,
   type BootstrapManifest,
+  type ConfigureHotelAppBuild,
   type CreateHotelInput,
   type HotelConfiguration,
   type PublishHotelConfig,
+  type UpdateAppBuildStatus,
 } from "@staybuddy/contracts";
 import {
   appendAuditAndOutbox,
@@ -17,21 +23,11 @@ import {
   type DatabasePool,
   withPlatformTransaction,
 } from "@staybuddy/db";
-import { z } from "zod";
+import { assertAppBuildTransition, type AppBuildStatus } from "@staybuddy/domain";
 import { DATABASE_POOL } from "./database.module.js";
 import { AppError } from "./errors.js";
 import type { PlatformPrincipal } from "./principal.service.js";
 import { SecurityService } from "./security.service.js";
-
-const CreateBuildJobInputSchema = z
-  .object({
-    hotelId: z.string().uuid(),
-    hotelAppId: z.string().uuid(),
-    platform: z.enum(["IOS", "ANDROID"]),
-    profile: z.enum(["DEVELOPMENT", "PREVIEW", "PRODUCTION"]),
-    version: z.string().min(1).max(80),
-  })
-  .strict();
 
 @Injectable()
 export class PlatformService {
@@ -112,7 +108,7 @@ export class PlatformService {
 
   async createBuildJob(input: unknown, principal: PlatformPrincipal, idempotencyKey?: string) {
     if (!idempotencyKey) throw new AppError("INVALID_REQUEST", 400, false, { field: "Idempotency-Key" });
-    const values = CreateBuildJobInputSchema.parse(input);
+    const values = CreateAppBuildSchema.parse(input);
     const traceId = randomUUID();
     try {
       return await withPlatformTransaction(
@@ -130,20 +126,46 @@ export class PlatformService {
             request: values,
             expiresAt: new Date(Date.now() + 86_400_000),
             action: async () => {
+              const app = await client.query<{
+                config_version: number;
+                build_config_status: string;
+                asset_status: string;
+              }>(
+                `SELECT config_version, build_config_status, asset_status
+                 FROM hotel_apps WHERE id=$1 AND hotel_id=$2 FOR UPDATE`,
+                [values.hotelAppId, values.hotelId],
+              );
+              const appRow = app.rows[0];
+              if (!appRow) throw new AppError("NOT_FOUND", 404);
+              if (appRow.build_config_status !== "VALID") {
+                throw new AppError("CONFLICT", 409, false, { reason: "APP_BUILD_CONFIG_NOT_VALID" });
+              }
+              if (values.profile === "PRODUCTION" && appRow.asset_status !== "APPROVED") {
+                throw new AppError("CONFLICT", 409, false, { reason: "PRODUCTION_ASSETS_NOT_APPROVED" });
+              }
               const result = await client.query<{ id: string }>(
                 `INSERT INTO app_build_jobs
-                  (hotel_id, hotel_app_id, platform, profile, status, version, requested_by)
-                 VALUES ($1,$2,$3,$4,'QUEUED',$5,$6) RETURNING id`,
+                  (hotel_id, hotel_app_id, platform, profile, status, version, commit_sha,
+                   source_config_version, requested_by)
+                 VALUES ($1,$2,$3,$4,'QUEUED',$5,$6,$7,$8) RETURNING id`,
                 [
                   values.hotelId,
                   values.hotelAppId,
                   values.platform,
                   values.profile,
                   values.version,
+                  values.commitSha,
+                  appRow.config_version,
                   principal.actorId,
                 ],
               );
               const buildJobId = result.rows[0]!.id;
+              await client.query(
+                `INSERT INTO app_build_status_events
+                  (hotel_id,hotel_app_id,app_build_job_id,prior_status,status,actor_id)
+                 VALUES ($1,$2,$3,NULL,'QUEUED',$4)`,
+                [values.hotelId, values.hotelAppId, buildJobId, principal.actorId],
+              );
               await appendAuditAndOutbox(client, {
                 hotelId: values.hotelId,
                 actor: { type: "STAYBUDDY_STAFF", id: principal.actorId, role: principal.role },
@@ -158,6 +180,8 @@ export class PlatformService {
                     platform: values.platform,
                     profile: values.profile,
                     version: values.version,
+                    commitSha: values.commitSha,
+                    sourceConfigVersion: appRow.config_version,
                   },
                 },
                 traceId,
@@ -170,6 +194,9 @@ export class PlatformService {
           }),
       );
     } catch (error) {
+      if ((error as { code?: string }).code === "23505") {
+        throw new AppError("CONFLICT", 409, true, { reason: "APP_BUILD_LANE_BUSY" });
+      }
       if ((error as Error).message === "IDEMPOTENCY_KEY_REUSED") {
         throw new AppError("IDEMPOTENCY_KEY_REUSED", 409);
       }
@@ -177,6 +204,192 @@ export class PlatformService {
         throw new AppError("IDEMPOTENCY_IN_PROGRESS", 409, true);
       }
       throw error;
+    }
+  }
+
+  async configureHotelAppBuild(
+    hotelAppId: string,
+    input: unknown,
+    principal: PlatformPrincipal,
+    idempotencyKey?: string,
+  ) {
+    if (!idempotencyKey) throw new AppError("INVALID_REQUEST", 400, false, { field: "Idempotency-Key" });
+    const values = ConfigureHotelAppBuildSchema.parse(input);
+    const traceId = randomUUID();
+    try {
+      return await withPlatformTransaction(
+        this.pool,
+        {
+          actorId: principal.actorId,
+          platformRole: principal.role,
+          traceId,
+          correlationId: idempotencyKey,
+        },
+        (client) =>
+          executePlatformIdempotent(client, {
+            scope: `hotel-app.build-config:${hotelAppId}`,
+            key: idempotencyKey,
+            request: values,
+            expiresAt: new Date(Date.now() + 86_400_000),
+            action: async () => ({
+              status: 200,
+              body: await this.persistHotelAppBuildConfig(
+                client,
+                hotelAppId,
+                values,
+                principal,
+                idempotencyKey,
+                traceId,
+              ),
+            }),
+          }),
+      );
+    } catch (error) {
+      rethrowIdempotencyError(error);
+    }
+  }
+
+  async listAppFactory(principal: PlatformPrincipal) {
+    return withPlatformTransaction(
+      this.pool,
+      { actorId: principal.actorId, platformRole: principal.role, traceId: randomUUID() },
+      async (client) => {
+        const result = await client.query<{
+          hotel_id: string;
+          hotel_name: string;
+          hotel_app_id: string;
+          app_name: string;
+          ios_bundle_id: string;
+          android_package: string;
+          scheme: string;
+          build_config_status: string;
+          asset_status: string;
+          build_config_version: number;
+          latest_build_status: string | null;
+          latest_build_updated_at: Date | null;
+        }>(
+          `SELECT h.id AS hotel_id, h.display_name AS hotel_name, a.id AS hotel_app_id,
+                  a.app_name, a.ios_bundle_id, a.android_package, a.scheme,
+                  a.build_config_status, a.asset_status, a.build_config_version,
+                  latest.status AS latest_build_status, latest.updated_at AS latest_build_updated_at
+           FROM hotel_apps a
+           JOIN hotels h ON h.id=a.hotel_id
+           LEFT JOIN LATERAL (
+             SELECT status, updated_at FROM app_build_jobs
+             WHERE hotel_app_id=a.id ORDER BY created_at DESC LIMIT 1
+           ) latest ON true
+           ORDER BY h.display_name`,
+        );
+        return result.rows.map((row) => ({
+          hotelId: row.hotel_id,
+          hotelName: row.hotel_name,
+          hotelAppId: row.hotel_app_id,
+          appName: row.app_name,
+          iosBundleIdentifier: row.ios_bundle_id,
+          androidPackage: row.android_package,
+          scheme: row.scheme,
+          buildConfigStatus: row.build_config_status,
+          assetStatus: row.asset_status,
+          buildConfigVersion: row.build_config_version,
+          latestBuildStatus: row.latest_build_status,
+          latestBuildUpdatedAt: row.latest_build_updated_at?.toISOString() ?? null,
+        }));
+      },
+    );
+  }
+
+  async listBuildJobs(principal: PlatformPrincipal) {
+    return withPlatformTransaction(
+      this.pool,
+      { actorId: principal.actorId, platformRole: principal.role, traceId: randomUUID() },
+      async (client) => {
+        const result = await client.query<AppBuildRow>(`${APP_BUILD_SELECT} ORDER BY b.created_at DESC`);
+        return result.rows.map(mapAppBuild);
+      },
+    );
+  }
+
+  async getBuildJob(buildJobId: string, principal: PlatformPrincipal) {
+    return withPlatformTransaction(
+      this.pool,
+      { actorId: principal.actorId, platformRole: principal.role, traceId: randomUUID() },
+      async (client) => {
+        const result = await client.query<AppBuildRow>(`${APP_BUILD_SELECT} WHERE b.id=$1`, [buildJobId]);
+        const row = result.rows[0];
+        if (!row) throw new AppError("NOT_FOUND", 404);
+        const events = await client.query<{
+          id: string;
+          prior_status: string | null;
+          status: string;
+          provider_reference: string | null;
+          artifact_reference: string | null;
+          failure_code: string | null;
+          validation_summary: Record<string, unknown>;
+          actor_id: string;
+          occurred_at: Date;
+        }>(
+          `SELECT id,prior_status,status,provider_reference,artifact_reference,failure_code,
+                  validation_summary,actor_id,occurred_at
+           FROM app_build_status_events WHERE app_build_job_id=$1 ORDER BY occurred_at,id`,
+          [buildJobId],
+        );
+        return {
+          build: mapAppBuild(row),
+          events: events.rows.map((event) => ({
+            id: event.id,
+            priorStatus: event.prior_status,
+            status: event.status,
+            providerReference: event.provider_reference,
+            artifactReference: event.artifact_reference,
+            failureCode: event.failure_code,
+            validationSummary: event.validation_summary,
+            actorId: event.actor_id,
+            occurredAt: event.occurred_at.toISOString(),
+          })),
+        };
+      },
+    );
+  }
+
+  async updateBuildJobStatus(
+    buildJobId: string,
+    input: unknown,
+    principal: PlatformPrincipal,
+    idempotencyKey?: string,
+  ) {
+    if (!idempotencyKey) throw new AppError("INVALID_REQUEST", 400, false, { field: "Idempotency-Key" });
+    const values = UpdateAppBuildStatusSchema.parse(input);
+    const traceId = randomUUID();
+    try {
+      return await withPlatformTransaction(
+        this.pool,
+        {
+          actorId: principal.actorId,
+          platformRole: principal.role,
+          traceId,
+          correlationId: idempotencyKey,
+        },
+        (client) =>
+          executePlatformIdempotent(client, {
+            scope: `app-build.status:${buildJobId}`,
+            key: idempotencyKey,
+            request: values,
+            expiresAt: new Date(Date.now() + 86_400_000),
+            action: async () => ({
+              status: 200,
+              body: await this.persistBuildStatus(
+                client,
+                buildJobId,
+                values,
+                principal,
+                idempotencyKey,
+                traceId,
+              ),
+            }),
+          }),
+      );
+    } catch (error) {
+      rethrowIdempotencyError(error);
     }
   }
 
@@ -432,6 +645,155 @@ export class PlatformService {
       }
       throw error;
     }
+  }
+
+  private async persistHotelAppBuildConfig(
+    client: DatabaseClient,
+    hotelAppId: string,
+    values: ConfigureHotelAppBuild,
+    principal: PlatformPrincipal,
+    idempotencyKey: string,
+    traceId: string,
+  ) {
+    const app = await client.query<{
+      id: string;
+      hotel_id: string;
+      scheme: string;
+      build_config_version: number;
+    }>("SELECT id,hotel_id,scheme,build_config_version FROM hotel_apps WHERE id=$1 FOR UPDATE", [hotelAppId]);
+    const row = app.rows[0];
+    if (!row) throw new AppError("NOT_FOUND", 404);
+    if (values.deepLinks.scheme !== row.scheme) {
+      throw new AppError("CONFLICT", 409, false, { reason: "COMPILED_SCHEME_IMMUTABLE" });
+    }
+    const nextVersion = row.build_config_version + 1;
+    await client.query(
+      `UPDATE hotel_apps SET build_config_version=$2,build_config_status='VALID',asset_status=$3,
+              asset_manifest=$4,deep_link_config=$5,store_listing=$6,updated_at=now()
+       WHERE id=$1`,
+      [
+        hotelAppId,
+        nextVersion,
+        values.assets.status,
+        JSON.stringify(values.assets),
+        JSON.stringify(values.deepLinks),
+        JSON.stringify(values.storeListing),
+      ],
+    );
+    await appendAuditAndOutbox(client, {
+      hotelId: row.hotel_id,
+      actor: { type: "STAYBUDDY_STAFF", id: principal.actorId, role: principal.role },
+      action: "app.build_config.updated",
+      resource: { type: "hotel_app", id: hotelAppId },
+      event: {
+        type: "app.build_config.updated",
+        aggregateType: "hotel_app",
+        aggregateId: hotelAppId,
+        payload: { buildConfigVersion: nextVersion, assetStatus: values.assets.status },
+      },
+      traceId,
+      correlationId: idempotencyKey,
+      idempotencyKey,
+      commandId: idempotencyKey,
+    });
+    return { hotelAppId, buildConfigVersion: nextVersion, status: "VALID" as const };
+  }
+
+  private async persistBuildStatus(
+    client: DatabaseClient,
+    buildJobId: string,
+    values: UpdateAppBuildStatus,
+    principal: PlatformPrincipal,
+    idempotencyKey: string,
+    traceId: string,
+  ) {
+    const current = await client.query<{
+      hotel_id: string;
+      hotel_app_id: string;
+      status: AppBuildStatus;
+    }>("SELECT hotel_id,hotel_app_id,status FROM app_build_jobs WHERE id=$1 FOR UPDATE", [buildJobId]);
+    const row = current.rows[0];
+    if (!row) throw new AppError("NOT_FOUND", 404);
+    try {
+      assertAppBuildTransition(row.status, values.status);
+    } catch {
+      throw new AppError("CONFLICT", 409, false, {
+        reason: "INVALID_APP_BUILD_TRANSITION",
+        priorStatus: row.status,
+        status: values.status,
+      });
+    }
+    const terminal = ["BUILT", "FAILED", "CANCELLED"].includes(values.status);
+    await client.query(
+      `UPDATE app_build_jobs
+       SET status=$2,provider_reference=COALESCE($3,provider_reference),
+           artifact_reference=COALESCE($4,artifact_reference),failure_code=$5,
+           validation_summary=COALESCE($6,validation_summary),
+           started_at=CASE WHEN $2 IN ('VALIDATING','BUILDING') THEN COALESCE(started_at,now()) ELSE started_at END,
+           completed_at=CASE WHEN $7 THEN now() ELSE completed_at END,updated_at=now()
+       WHERE id=$1`,
+      [
+        buildJobId,
+        values.status,
+        values.providerReference ?? null,
+        values.artifactReference ?? null,
+        values.failureCode ?? null,
+        values.validationSummary ? JSON.stringify(values.validationSummary) : null,
+        terminal,
+      ],
+    );
+    await client.query(
+      `INSERT INTO app_build_status_events
+        (hotel_id,hotel_app_id,app_build_job_id,prior_status,status,provider_reference,
+         artifact_reference,failure_code,validation_summary,actor_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [
+        row.hotel_id,
+        row.hotel_app_id,
+        buildJobId,
+        row.status,
+        values.status,
+        values.providerReference ?? null,
+        values.artifactReference ?? null,
+        values.failureCode ?? null,
+        JSON.stringify(values.validationSummary ?? {}),
+        principal.actorId,
+      ],
+    );
+    if (["VALIDATING", "BUILDING"].includes(values.status)) {
+      await client.query(
+        "UPDATE hotel_apps SET status='BUILDING',updated_at=now() WHERE id=$1 AND status NOT IN ('LIVE','PAUSED')",
+        [row.hotel_app_id],
+      );
+    } else if (terminal) {
+      await client.query(
+        "UPDATE hotel_apps SET status='READY',updated_at=now() WHERE id=$1 AND status NOT IN ('LIVE','PAUSED')",
+        [row.hotel_app_id],
+      );
+    }
+    await appendAuditAndOutbox(client, {
+      hotelId: row.hotel_id,
+      actor: { type: "STAYBUDDY_STAFF", id: principal.actorId, role: principal.role },
+      action: "app.build.status_changed",
+      resource: { type: "app_build_job", id: buildJobId },
+      event: {
+        type: "app.build.status_changed",
+        aggregateType: "app_build_job",
+        aggregateId: buildJobId,
+        payload: {
+          hotelAppId: row.hotel_app_id,
+          priorStatus: row.status,
+          status: values.status,
+          providerReference: values.providerReference ?? null,
+          failureCode: values.failureCode ?? null,
+        },
+      },
+      traceId,
+      correlationId: idempotencyKey,
+      idempotencyKey,
+      commandId: idempotencyKey,
+    });
+    return { buildJobId, priorStatus: row.status, status: values.status };
   }
 
   private async persistPublishedConfig(
@@ -765,4 +1127,67 @@ function compareSemver(left: string, right: string): number {
     if (a[index]! < b[index]!) return -1;
   }
   return 0;
+}
+
+type AppBuildRow = {
+  id: string;
+  hotel_id: string;
+  hotel_app_id: string;
+  hotel_name: string;
+  app_name: string;
+  platform: AppBuild["platform"];
+  profile: AppBuild["profile"];
+  status: AppBuild["status"];
+  version: string;
+  commit_sha: string;
+  source_config_version: number;
+  provider_reference: string | null;
+  artifact_reference: string | null;
+  failure_code: string | null;
+  validation_summary: Record<string, unknown>;
+  requested_by: string;
+  created_at: Date;
+  updated_at: Date;
+};
+
+const APP_BUILD_SELECT = `
+  SELECT b.id,b.hotel_id,b.hotel_app_id,h.display_name AS hotel_name,a.app_name,
+         b.platform,b.profile,b.status,b.version,b.commit_sha,b.source_config_version,
+         b.provider_reference,b.artifact_reference,b.failure_code,b.validation_summary,
+         b.requested_by,b.created_at,b.updated_at
+  FROM app_build_jobs b
+  JOIN hotels h ON h.id=b.hotel_id
+  JOIN hotel_apps a ON a.id=b.hotel_app_id`;
+
+function mapAppBuild(row: AppBuildRow): AppBuild {
+  return {
+    id: row.id,
+    hotelId: row.hotel_id,
+    hotelAppId: row.hotel_app_id,
+    hotelName: row.hotel_name,
+    appName: row.app_name,
+    platform: row.platform,
+    profile: row.profile,
+    status: row.status,
+    version: row.version,
+    commitSha: row.commit_sha,
+    sourceConfigVersion: row.source_config_version,
+    providerReference: row.provider_reference,
+    artifactReference: row.artifact_reference,
+    failureCode: row.failure_code,
+    validationSummary: row.validation_summary,
+    requestedBy: row.requested_by,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+  };
+}
+
+function rethrowIdempotencyError(error: unknown): never {
+  if ((error as Error).message === "IDEMPOTENCY_KEY_REUSED") {
+    throw new AppError("IDEMPOTENCY_KEY_REUSED", 409);
+  }
+  if ((error as Error).message === "IDEMPOTENCY_IN_PROGRESS") {
+    throw new AppError("IDEMPOTENCY_IN_PROGRESS", 409, true);
+  }
+  throw error;
 }

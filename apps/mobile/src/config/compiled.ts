@@ -9,6 +9,12 @@ export type CompiledTenant = {
   defaultLocale: "en" | "th" | "zh-CN" | "ru";
   supportedLocales: ("en" | "th" | "zh-CN" | "ru")[];
   bootstrapPublicKeyHex: string;
+  deepLinks: {
+    scheme: string;
+    universalLinkOrigin: string;
+    installLandingUrl: string;
+    allowedRoutes: string[];
+  };
   theme: GuestTheme & { logoUrl: string; heroImageUrl?: string };
 };
 

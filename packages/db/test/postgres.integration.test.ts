@@ -143,6 +143,7 @@ describeWithDatabase("PostgreSQL tenant boundary", () => {
       "hotel_service_categories",
       "hotel_public_config_versions",
       "app_build_jobs",
+      "app_build_status_events",
       "idempotency_keys",
       "outbox_events",
       "audit_logs",

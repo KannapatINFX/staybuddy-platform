@@ -33,6 +33,8 @@ process.env.ALLOW_TEST_OAUTH = "true";
 process.env.ALLOW_DEBUG_AUTH = "true";
 
 const platformActorId = randomUUID();
+const appOpsActorId = randomUUID();
+const supportActorId = randomUUID();
 const hotelAStaffId = randomUUID();
 const hotelBStaffId = randomUUID();
 const staffByHotel = new Map<string, string>();
@@ -62,17 +64,23 @@ describe.sequential("StayBuddy phase-0 API", () => {
     if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required for integration tests");
     adminPool = createDatabasePool();
     await runMigrations(adminPool);
-    await adminPool.query(
-      `INSERT INTO platform_identities (id,subject,email_hash,encrypted_email,status)
-       VALUES ($1,$2,$3,$4,'ACTIVE') ON CONFLICT (id) DO NOTHING`,
-      [platformActorId, `integration:${platformActorId}`, `hash:${platformActorId}`, "encrypted"],
-    );
-    await adminPool.query(
-      `INSERT INTO platform_role_grants (platform_identity_id,role,status,granted_by)
-       VALUES ($1,'STAYBUDDY_SUPER_ADMIN','ACTIVE','integration')
-       ON CONFLICT (platform_identity_id,role) DO UPDATE SET status='ACTIVE'`,
-      [platformActorId],
-    );
+    for (const [actorId, role] of [
+      [platformActorId, "STAYBUDDY_SUPER_ADMIN"],
+      [appOpsActorId, "STAYBUDDY_APP_OPS"],
+      [supportActorId, "STAYBUDDY_SUPPORT"],
+    ] as const) {
+      await adminPool.query(
+        `INSERT INTO platform_identities (id,subject,email_hash,encrypted_email,status)
+         VALUES ($1,$2,$3,$4,'ACTIVE') ON CONFLICT (id) DO NOTHING`,
+        [actorId, `integration:${actorId}`, `hash:${actorId}`, "encrypted"],
+      );
+      await adminPool.query(
+        `INSERT INTO platform_role_grants (platform_identity_id,role,status,granted_by)
+         VALUES ($1,$2,'ACTIVE','integration')
+         ON CONFLICT (platform_identity_id,role) DO UPDATE SET status='ACTIVE'`,
+        [actorId, role],
+      );
+    }
     app = await createApp();
     api = app.getHttpAdapter().getInstance() as FastifyInstance;
   });
@@ -383,6 +391,164 @@ describe.sequential("StayBuddy phase-0 API", () => {
       },
     });
     expect(unknownPlatformActor.statusCode).toBe(403);
+  });
+
+  it("isolates hotel app build lanes and preserves deterministic status history", async () => {
+    const appOpsHeaders = {
+      "x-platform-role": "STAYBUDDY_APP_OPS",
+      "x-debug-actor-id": appOpsActorId,
+    };
+    const configure = async (hotel: HotelSetup) => {
+      const app = await adminPool.query<{ scheme: string }>("SELECT scheme FROM hotel_apps WHERE id=$1", [
+        hotel.appId,
+      ]);
+      const scheme = app.rows[0]!.scheme;
+      const payload = {
+        deepLinks: {
+          scheme,
+          universalLinkOrigin: `https://${scheme}.example.invalid`,
+          installLandingUrl: `https://${scheme}.example.invalid/install`,
+          allowedRoutes: ["welcome", "claim", "concierge", "services", "stay", "requests", "orders", "inbox"],
+        },
+        assets: {
+          status: "SYNTHETIC",
+          icon: { path: `${scheme}/icon.png`, sha256: "1".repeat(64), width: 1024, height: 1024 },
+          adaptiveIcon: {
+            path: `${scheme}/adaptive-icon.png`,
+            sha256: "2".repeat(64),
+            width: 1024,
+            height: 1024,
+          },
+          splash: { path: `${scheme}/splash.png`, sha256: "3".repeat(64), width: 1284, height: 2778 },
+        },
+        storeListing: {
+          privacyUrl: `https://${scheme}.example.invalid/privacy`,
+          supportUrl: `https://${scheme}.example.invalid/support`,
+          locales: ["en", "th", "zh-CN", "ru"].map((locale) => ({
+            locale,
+            title: "Integration Hotel",
+            subtitle: "Your hotel concierge",
+            description: "A dedicated hotel companion for service and support throughout every stay.",
+            keywords: ["hotel", "concierge"],
+          })),
+        },
+      };
+      const response = await api.inject({
+        method: "PATCH",
+        url: `/v1/ops/hotel-apps/${hotel.appId}/build-config`,
+        headers: {
+          ...appOpsHeaders,
+          "idempotency-key": `build-config-${randomUUID()}`,
+        },
+        payload,
+      });
+      expect(response.statusCode).toBe(200);
+    };
+    await configure(hotelA);
+    await configure(hotelB);
+
+    const queue = async (hotel: HotelSetup) => {
+      const response = await api.inject({
+        method: "POST",
+        url: "/v1/ops/app-builds",
+        headers: {
+          ...appOpsHeaders,
+          "idempotency-key": `build-${randomUUID()}`,
+        },
+        payload: {
+          hotelId: hotel.hotelId,
+          hotelAppId: hotel.appId,
+          platform: "IOS",
+          profile: "PREVIEW",
+          version: "1.0.0",
+          commitSha: "abcdef1234567890",
+        },
+      });
+      expect(response.statusCode).toBe(201);
+      return decode<{ body: { buildJobId: string } }>(response).body.buildJobId;
+    };
+    const buildA = await queue(hotelA);
+    const buildB = await queue(hotelB);
+    const transition = async (
+      buildJobId: string,
+      payload: { status: string; failureCode?: string; artifactReference?: string },
+    ) => {
+      const response = await api.inject({
+        method: "PATCH",
+        url: `/v1/ops/app-builds/${buildJobId}/status`,
+        headers: {
+          ...appOpsHeaders,
+          "idempotency-key": `build-status-${randomUUID()}`,
+        },
+        payload,
+      });
+      expect(response.statusCode).toBe(200);
+    };
+    await transition(buildA, { status: "VALIDATING" });
+    await transition(buildA, { status: "FAILED", failureCode: "ASSET_VALIDATION_FAILED" });
+    await transition(buildB, { status: "VALIDATING" });
+    await transition(buildB, { status: "BUILDING" });
+    await transition(buildB, { status: "BUILT", artifactReference: "local://hotel-b-ios" });
+
+    const queueResponse = await api.inject({
+      method: "GET",
+      url: "/v1/ops/app-builds",
+      headers: appOpsHeaders,
+    });
+    const builds = decode<Array<{ id: string; hotelId: string; status: string }>>(queueResponse);
+    expect(builds).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: buildA, hotelId: hotelA.hotelId, status: "FAILED" }),
+        expect.objectContaining({ id: buildB, hotelId: hotelB.hotelId, status: "BUILT" }),
+      ]),
+    );
+    const detail = await api.inject({
+      method: "GET",
+      url: `/v1/ops/app-builds/${buildB}`,
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPPORT",
+        "x-debug-actor-id": supportActorId,
+      },
+    });
+    expect(decode<{ events: unknown[] }>(detail).events).toHaveLength(4);
+
+    const invalidTerminalRewrite = await api.inject({
+      method: "PATCH",
+      url: `/v1/ops/app-builds/${buildA}/status`,
+      headers: {
+        ...appOpsHeaders,
+        "idempotency-key": `build-status-${randomUUID()}`,
+      },
+      payload: { status: "BUILDING" },
+    });
+    expect(invalidTerminalRewrite.statusCode).toBe(409);
+
+    const supportMutation = await api.inject({
+      method: "POST",
+      url: "/v1/ops/app-builds",
+      headers: {
+        "x-platform-role": "STAYBUDDY_SUPPORT",
+        "x-debug-actor-id": supportActorId,
+        "idempotency-key": `support-build-${randomUUID()}`,
+      },
+      payload: {
+        hotelId: hotelA.hotelId,
+        hotelAppId: hotelA.appId,
+        platform: "ANDROID",
+        profile: "PREVIEW",
+        version: "1.0.0",
+        commitSha: "abcdef1234567890",
+      },
+    });
+    expect(supportMutation.statusCode).toBe(403);
+
+    const event = await adminPool.query<{ id: string }>(
+      "SELECT id FROM app_build_status_events WHERE app_build_job_id=$1 ORDER BY occurred_at LIMIT 1",
+      [buildB],
+    );
+    await expect(
+      adminPool.query("UPDATE app_build_status_events SET status='FAILED' WHERE id=$1", [event.rows[0]!.id]),
+    ).rejects.toMatchObject({ code: "55000" });
   });
 
   it("previews, commits and safely replays a mixed reservation import", async () => {

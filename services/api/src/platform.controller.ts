@@ -92,4 +92,66 @@ export class PlatformController {
     this.principals.requirePlatformPermission(principal, "platform.app-builds.create");
     return this.platform.createBuildJob(input, principal, idempotencyKey);
   }
+
+  @Get("ops/app-factory")
+  async listAppFactory(
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.read");
+    return this.platform.listAppFactory(principal);
+  }
+
+  @Patch("ops/hotel-apps/:hotelAppId/build-config")
+  async configureHotelAppBuild(
+    @Param("hotelAppId") hotelAppId: string,
+    @Body() input: unknown,
+    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.update");
+    return this.platform.configureHotelAppBuild(hotelAppId, input, principal, idempotencyKey);
+  }
+
+  @Get("ops/app-builds")
+  async listBuildJobs(
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.read");
+    return this.platform.listBuildJobs(principal);
+  }
+
+  @Get("ops/app-builds/:buildJobId")
+  async getBuildJob(
+    @Param("buildJobId") buildJobId: string,
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.read");
+    return this.platform.getBuildJob(buildJobId, principal);
+  }
+
+  @Patch("ops/app-builds/:buildJobId/status")
+  async updateBuildJobStatus(
+    @Param("buildJobId") buildJobId: string,
+    @Body() input: unknown,
+    @Headers("idempotency-key") idempotencyKey?: string,
+    @Headers("authorization") authorization?: string,
+    @Headers("x-platform-role") debugRole?: string,
+    @Headers("x-debug-actor-id") debugActorId?: string,
+  ) {
+    const principal = await this.principals.platform(authorization, debugRole, debugActorId);
+    this.principals.requirePlatformPermission(principal, "platform.app-builds.update");
+    return this.platform.updateBuildJobStatus(buildJobId, input, principal, idempotencyKey);
+  }
 }

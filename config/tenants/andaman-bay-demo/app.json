@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 1,
   "hotelId": "hotel-andaman-bay",
   "appId": "app-andaman-bay",
   "slug": "andaman-bay-demo",
@@ -7,11 +8,37 @@
   "appInstallationKey": "andaman-bay-public-app-key-v1",
   "iosBundleIdentifier": "com.staybuddy.andamanbaydemo",
   "androidPackage": "com.staybuddy.andamanbaydemo",
-  "scheme": "andamanbay",
   "defaultLocale": "th",
   "supportedLocales": ["en", "th", "zh-CN", "ru"],
   "bootstrapPublicKeyHex": "4cb5abf6ad79fbf5abbccafcc269d85cd2651ed4b885b5869f241aedf0a5ba29",
-  "assetStatus": "PLACEHOLDER",
+  "deepLinks": {
+    "scheme": "andamanbay",
+    "universalLinkOrigin": "https://andaman-bay.example.invalid",
+    "installLandingUrl": "https://andaman-bay.example.invalid/install",
+    "allowedRoutes": ["welcome", "claim", "concierge", "services", "stay", "requests", "orders", "inbox"]
+  },
+  "assets": {
+    "status": "SYNTHETIC",
+    "icon": {
+      "path": "config/tenants/andaman-bay-demo/assets/icon.png",
+      "sha256": "80cb3f7b398f1f2d2b5180202c27cf60255b32c36504ff3380a414f51a1c4852",
+      "width": 1024,
+      "height": 1024
+    },
+    "adaptiveIcon": {
+      "path": "config/tenants/andaman-bay-demo/assets/adaptive-icon.png",
+      "sha256": "80cb3f7b398f1f2d2b5180202c27cf60255b32c36504ff3380a414f51a1c4852",
+      "width": 1024,
+      "height": 1024
+    },
+    "splash": {
+      "path": "config/tenants/andaman-bay-demo/assets/splash.png",
+      "sha256": "cde99d023e1e84d58c9b2aa526b8946a58500d7fa8006b0f4c39456d88f56f0b",
+      "width": 1284,
+      "height": 2778
+    }
+  },
+  "storeListingPath": "config/tenants/andaman-bay-demo/store-listing.json",
   "theme": {
     "primary": "#123B3A",
     "accent": "#D2A85A",

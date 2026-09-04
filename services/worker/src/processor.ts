@@ -22,3 +22,38 @@ export async function processDomainEvent(job: DomainEventJob) {
     })),
   );
 }
+
+export type AppBuildWork = {
+  buildJobId: string;
+  hotelId: string;
+  hotelAppId: string;
+  platform: "IOS" | "ANDROID";
+  tenantSlug: string;
+  profile: "DEVELOPMENT" | "PREVIEW" | "PRODUCTION";
+  commitSha: string;
+};
+
+export type AppBuildExecutor = (job: AppBuildWork) => Promise<{ artifactReference: string }>;
+
+export async function processAppBuildJob(job: AppBuildWork, execute: AppBuildExecutor) {
+  return withSpan(
+    "worker.app-build.process",
+    {
+      "staybuddy.hotel.id": job.hotelId,
+      "staybuddy.app.id": job.hotelAppId,
+      "staybuddy.app_build.id": job.buildJobId,
+    },
+    async () => {
+      try {
+        const result = await execute(job);
+        return { buildJobId: job.buildJobId, status: "BUILT" as const, ...result };
+      } catch (error) {
+        return {
+          buildJobId: job.buildJobId,
+          status: "FAILED" as const,
+          failureCode: error instanceof Error && error.message ? error.message : "APP_BUILD_FAILED",
+        };
+      }
+    },
+  );
+}

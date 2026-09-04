@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aiWalletChargeMinor,
+  assertAppBuildTransition,
   assertGuestLifecycleTransition,
   assertRequestTransition,
   hotelCommerceCommissionMinor,
@@ -38,6 +39,18 @@ describe("locked domain rules", () => {
     expect(canPlatform("STAYBUDDY_SUPER_ADMIN", "platform.hotels.configure")).toBe(true);
     expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.configure")).toBe(false);
     expect(canPlatform("STAYBUDDY_SUPPORT", "platform.hotels.read")).toBe(true);
+    expect(canPlatform("STAYBUDDY_APP_OPS", "platform.app-builds.create")).toBe(true);
+    expect(canPlatform("STAYBUDDY_SUPPORT", "platform.app-builds.read")).toBe(true);
+    expect(canPlatform("STAYBUDDY_SUPPORT", "platform.app-builds.update")).toBe(false);
+  });
+
+  it("allows deterministic app build progress and rejects terminal rewrites", () => {
+    expect(() => assertAppBuildTransition("QUEUED", "VALIDATING")).not.toThrow();
+    expect(() => assertAppBuildTransition("VALIDATING", "BUILDING")).not.toThrow();
+    expect(() => assertAppBuildTransition("BUILDING", "BUILT")).not.toThrow();
+    expect(() => assertAppBuildTransition("VALIDATING", "FAILED")).not.toThrow();
+    expect(() => assertAppBuildTransition("FAILED", "BUILDING")).toThrow();
+    expect(() => assertAppBuildTransition("QUEUED", "BUILT")).toThrow();
   });
 
   it("requires department-scoped roles to match the resource department", () => {

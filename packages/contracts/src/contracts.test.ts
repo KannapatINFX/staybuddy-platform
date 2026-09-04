@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  ConfigureHotelAppBuildSchema,
+  CreateAppBuildSchema,
   BootstrapManifestSchema,
   CanonicalReservationSchema,
   CreateHotelInputSchema,
@@ -78,5 +80,30 @@ describe("contracts", () => {
 
   it("requires a complete hotel onboarding payload", () => {
     expect(CreateHotelInputSchema.safeParse({ slug: "incomplete" }).success).toBe(false);
+  });
+
+  it("requires immutable build identity inputs and complete app-factory metadata", () => {
+    expect(
+      CreateAppBuildSchema.safeParse({
+        hotelId: "not-a-uuid",
+        hotelAppId: "not-a-uuid",
+        platform: "IOS",
+        profile: "PREVIEW",
+        version: "1.0.0",
+        commitSha: "abcdef1",
+      }).success,
+    ).toBe(false);
+    expect(
+      ConfigureHotelAppBuildSchema.safeParse({
+        deepLinks: {
+          scheme: "hotel",
+          universalLinkOrigin: "https://hotel.example.invalid",
+          installLandingUrl: "https://hotel.example.invalid/install",
+          allowedRoutes: ["claim"],
+        },
+        assets: { status: "SYNTHETIC" },
+        storeListing: { locales: [] },
+      }).success,
+    ).toBe(false);
   });
 });

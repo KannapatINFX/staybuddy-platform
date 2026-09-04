@@ -20,6 +20,7 @@ export type PlatformDatabaseContext = {
   actorId: string;
   platformRole:
     | "STAYBUDDY_SUPER_ADMIN"
+    | "STAYBUDDY_APP_OPS"
     | "STAYBUDDY_SUPPORT"
     | "STAYBUDDY_CONTENT_OPS"
     | "STAYBUDDY_FINANCE"
