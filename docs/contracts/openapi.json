@@ -679,11 +679,11 @@
         },
         "responses": {
           "200": {
-            "description": "ImportPreview",
+            "description": "ServerImportPreview",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImportPreview"
+                  "$ref": "#/components/schemas/ServerImportPreview"
                 }
               }
             }
@@ -751,6 +751,285 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReservationCommitResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports": {
+      "get": {
+        "operationId": "listReservationImports",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReservationImportSummary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationImportSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports/health": {
+      "get": {
+        "operationId": "getReservationImportHealth",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "IntegrationHealth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationHealth"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports/{batchId}": {
+      "get": {
+        "operationId": "getReservationImport",
+        "parameters": [
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReservationImportDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationImportDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-imports/{batchId}/retry": {
+      "post": {
+        "operationId": "retryReservationImport",
+        "parameters": [
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "ReservationCommitResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationCommitResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservation-mappings": {
+      "get": {
+        "operationId": "listReservationMappings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MappingProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MappingProfile"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveReservationMapping",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMapping"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "SavedMappingReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedMappingReceipt"
                 }
               }
             }
@@ -872,6 +1151,93 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/ReservationSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reservations/{reservationId}": {
+      "get": {
+        "operationId": "getReservation",
+        "parameters": [
+          {
+            "name": "reservationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReservationDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/integrations/health": {
+      "get": {
+        "operationId": "listIntegrationHealth",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "IntegrationHealth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationHealth"
                   }
                 }
               }
@@ -4358,6 +4724,9 @@
                   "guestEmail": {
                     "type": "string"
                   },
+                  "guestPhone": {
+                    "type": "string"
+                  },
                   "nationality": {
                     "type": "string"
                   },
@@ -4421,11 +4790,243 @@
               "defaults"
             ],
             "additionalProperties": false
+          },
+          "mappingProfileId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
           }
         },
         "required": [
-          "csv",
-          "mapping"
+          "csv"
+        ],
+        "additionalProperties": false
+      },
+      "ServerImportPreview": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "totalRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "validRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejectedRows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rowNumber": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "rowNumber",
+                "code",
+                "detail"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "reservations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourceSystem": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "externalReservationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "CONFIRMED",
+                    "MODIFIED",
+                    "CANCELLED",
+                    "NO_SHOW"
+                  ]
+                },
+                "bookingSource": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "confirmationCode": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "primaryGuest": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                    },
+                    "phone": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "nationality": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 2
+                    },
+                    "preferredLanguage": {
+                      "type": "string",
+                      "enum": [
+                        "en",
+                        "th",
+                        "zh-CN",
+                        "ru"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "checkInAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "checkOutAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "timezone": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 80
+                },
+                "rooms": {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "externalRoomId": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "roomType": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "roomNumber": {
+                        "type": "string",
+                        "maxLength": 40
+                      },
+                      "adults": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "children": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "rateSummary": {
+                  "type": "object",
+                  "properties": {
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "totalMinor": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "currency",
+                    "totalMinor"
+                  ],
+                  "additionalProperties": false
+                },
+                "specialRequests": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "updatedAtSource": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "sourceSystem",
+                "externalReservationId",
+                "status",
+                "bookingSource",
+                "confirmationCode",
+                "primaryGuest",
+                "checkInAt",
+                "checkOutAt",
+                "timezone",
+                "rooms",
+                "updatedAtSource"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "previewId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "totalRows",
+          "validRows",
+          "rejectedRows",
+          "reservations",
+          "previewId",
+          "expiresAt"
         ],
         "additionalProperties": false
       },
@@ -4433,330 +5034,24 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "preview": {
-            "type": "object",
-            "properties": {
-              "batchId": {
-                "type": "string",
-                "minLength": 8,
-                "maxLength": 80
-              },
-              "totalRows": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              "validRows": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              "rejectedRows": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "rowNumber": {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "code": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string",
-                      "maxLength": 500
-                    }
-                  },
-                  "required": [
-                    "rowNumber",
-                    "code",
-                    "detail"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "reservations": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "sourceSystem": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 80
-                    },
-                    "externalReservationId": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 160
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "CONFIRMED",
-                        "MODIFIED",
-                        "CANCELLED",
-                        "NO_SHOW"
-                      ]
-                    },
-                    "bookingSource": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 80
-                    },
-                    "confirmationCode": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 120
-                    },
-                    "primaryGuest": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email",
-                          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-                        },
-                        "phone": {
-                          "type": "string",
-                          "maxLength": 40
-                        },
-                        "nationality": {
-                          "type": "string",
-                          "minLength": 2,
-                          "maxLength": 2
-                        },
-                        "preferredLanguage": {
-                          "type": "string",
-                          "enum": [
-                            "en",
-                            "th",
-                            "zh-CN",
-                            "ru"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "checkInAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "checkOutAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "timezone": {
-                      "type": "string",
-                      "minLength": 3,
-                      "maxLength": 80
-                    },
-                    "rooms": {
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "externalRoomId": {
-                            "type": "string",
-                            "maxLength": 120
-                          },
-                          "roomType": {
-                            "type": "string",
-                            "maxLength": 120
-                          },
-                          "roomNumber": {
-                            "type": "string",
-                            "maxLength": 40
-                          },
-                          "adults": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9007199254740991
-                          },
-                          "children": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 9007199254740991
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    },
-                    "rateSummary": {
-                      "type": "object",
-                      "properties": {
-                        "currency": {
-                          "type": "string",
-                          "minLength": 3,
-                          "maxLength": 3
-                        },
-                        "totalMinor": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "maximum": 9007199254740991
-                        }
-                      },
-                      "required": [
-                        "currency",
-                        "totalMinor"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "specialRequests": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "maxLength": 500
-                      }
-                    },
-                    "updatedAtSource": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    }
-                  },
-                  "required": [
-                    "sourceSystem",
-                    "externalReservationId",
-                    "status",
-                    "bookingSource",
-                    "confirmationCode",
-                    "primaryGuest",
-                    "checkInAt",
-                    "checkOutAt",
-                    "timezone",
-                    "rooms",
-                    "updatedAtSource"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            },
-            "required": [
-              "batchId",
-              "totalRows",
-              "validRows",
-              "rejectedRows",
-              "reservations"
-            ],
-            "additionalProperties": false
-          },
-          "mapping": {
-            "type": "object",
-            "properties": {
-              "sourceSystem": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 80
-              },
-              "columns": {
-                "type": "object",
-                "properties": {
-                  "externalReservationId": {
-                    "type": "string"
-                  },
-                  "status": {
-                    "type": "string"
-                  },
-                  "bookingSource": {
-                    "type": "string"
-                  },
-                  "confirmationCode": {
-                    "type": "string"
-                  },
-                  "guestName": {
-                    "type": "string"
-                  },
-                  "guestEmail": {
-                    "type": "string"
-                  },
-                  "nationality": {
-                    "type": "string"
-                  },
-                  "preferredLanguage": {
-                    "type": "string"
-                  },
-                  "checkInAt": {
-                    "type": "string"
-                  },
-                  "checkOutAt": {
-                    "type": "string"
-                  },
-                  "roomType": {
-                    "type": "string"
-                  },
-                  "roomNumber": {
-                    "type": "string"
-                  },
-                  "adults": {
-                    "type": "string"
-                  },
-                  "children": {
-                    "type": "string"
-                  },
-                  "updatedAtSource": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "externalReservationId",
-                  "status",
-                  "bookingSource",
-                  "confirmationCode",
-                  "guestName",
-                  "checkInAt",
-                  "checkOutAt"
-                ],
-                "additionalProperties": false
-              },
-              "defaults": {
-                "type": "object",
-                "properties": {
-                  "timezone": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 80
-                  },
-                  "bookingSource": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "timezone"
-                ],
-                "additionalProperties": false
-              }
-            },
-            "required": [
-              "sourceSystem",
-              "columns",
-              "defaults"
-            ],
-            "additionalProperties": false
+          "previewId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
           },
           "mappingName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 120
+          },
+          "saveMapping": {
+            "default": false,
+            "type": "boolean"
           }
         },
         "required": [
-          "preview",
-          "mapping",
-          "mappingName"
+          "previewId",
+          "saveMapping"
         ],
         "additionalProperties": false
       },
@@ -4786,6 +5081,16 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "conflicted": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
           "rejected": {
             "type": "integer",
             "minimum": 0,
@@ -4797,6 +5102,8 @@
           "status",
           "created",
           "updated",
+          "unchanged",
+          "conflicted",
           "rejected"
         ],
         "additionalProperties": false
@@ -4886,6 +5193,677 @@
         ],
         "additionalProperties": false
       },
+      "ReservationDetail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "externalReservationId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "bookingSource": {
+            "type": "string"
+          },
+          "confirmationCode": {
+            "type": "string"
+          },
+          "primaryGuestName": {
+            "type": "string"
+          },
+          "nationality": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preferredLocale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checkInAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "checkOutAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "stayId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "lifecycle": {
+            "type": "string"
+          },
+          "roomType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roomNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sourceSystem": {
+            "type": "string"
+          },
+          "sourceVersion": {
+            "type": "string"
+          },
+          "sourceUpdatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "importBatchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "rooms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": [
+          "id",
+          "externalReservationId",
+          "status",
+          "bookingSource",
+          "confirmationCode",
+          "primaryGuestName",
+          "nationality",
+          "preferredLocale",
+          "checkInAt",
+          "checkOutAt",
+          "stayId",
+          "lifecycle",
+          "roomType",
+          "roomNumber",
+          "sourceSystem",
+          "sourceVersion",
+          "sourceUpdatedAt",
+          "importBatchId",
+          "createdAt",
+          "updatedAt",
+          "rooms"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationImportSummary": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "sourceSystem": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "created": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "updated": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "conflicted": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "retryOfBatchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "sourceSystem",
+          "status",
+          "totalRows",
+          "created",
+          "updated",
+          "unchanged",
+          "conflicted",
+          "rejected",
+          "retryOfBatchId",
+          "createdAt",
+          "completedAt"
+        ],
+        "additionalProperties": false
+      },
+      "ReservationImportDetail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "sourceSystem": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalRows": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "created": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "updated": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "conflicted": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "retryOfBatchId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "completedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rejections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rowNumber": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "rowNumber",
+                "code",
+                "detail",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "sourceSystem",
+          "status",
+          "totalRows",
+          "created",
+          "updated",
+          "unchanged",
+          "conflicted",
+          "rejected",
+          "retryOfBatchId",
+          "createdAt",
+          "completedAt",
+          "rejections"
+        ],
+        "additionalProperties": false
+      },
+      "MappingProfile": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "name": {
+            "type": "string"
+          },
+          "sourceSystem": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "mapping": {
+            "type": "object",
+            "properties": {
+              "sourceSystem": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "columns": {
+                "type": "object",
+                "properties": {
+                  "externalReservationId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  },
+                  "confirmationCode": {
+                    "type": "string"
+                  },
+                  "guestName": {
+                    "type": "string"
+                  },
+                  "guestEmail": {
+                    "type": "string"
+                  },
+                  "guestPhone": {
+                    "type": "string"
+                  },
+                  "nationality": {
+                    "type": "string"
+                  },
+                  "preferredLanguage": {
+                    "type": "string"
+                  },
+                  "checkInAt": {
+                    "type": "string"
+                  },
+                  "checkOutAt": {
+                    "type": "string"
+                  },
+                  "roomType": {
+                    "type": "string"
+                  },
+                  "roomNumber": {
+                    "type": "string"
+                  },
+                  "adults": {
+                    "type": "string"
+                  },
+                  "children": {
+                    "type": "string"
+                  },
+                  "updatedAtSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "externalReservationId",
+                  "status",
+                  "bookingSource",
+                  "confirmationCode",
+                  "guestName",
+                  "checkInAt",
+                  "checkOutAt"
+                ],
+                "additionalProperties": false
+              },
+              "defaults": {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 80
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "timezone"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "sourceSystem",
+              "columns",
+              "defaults"
+            ],
+            "additionalProperties": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sourceSystem",
+          "version",
+          "mapping",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "SaveMapping": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "mapping": {
+            "type": "object",
+            "properties": {
+              "sourceSystem": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "columns": {
+                "type": "object",
+                "properties": {
+                  "externalReservationId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  },
+                  "confirmationCode": {
+                    "type": "string"
+                  },
+                  "guestName": {
+                    "type": "string"
+                  },
+                  "guestEmail": {
+                    "type": "string"
+                  },
+                  "guestPhone": {
+                    "type": "string"
+                  },
+                  "nationality": {
+                    "type": "string"
+                  },
+                  "preferredLanguage": {
+                    "type": "string"
+                  },
+                  "checkInAt": {
+                    "type": "string"
+                  },
+                  "checkOutAt": {
+                    "type": "string"
+                  },
+                  "roomType": {
+                    "type": "string"
+                  },
+                  "roomNumber": {
+                    "type": "string"
+                  },
+                  "adults": {
+                    "type": "string"
+                  },
+                  "children": {
+                    "type": "string"
+                  },
+                  "updatedAtSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "externalReservationId",
+                  "status",
+                  "bookingSource",
+                  "confirmationCode",
+                  "guestName",
+                  "checkInAt",
+                  "checkOutAt"
+                ],
+                "additionalProperties": false
+              },
+              "defaults": {
+                "type": "object",
+                "properties": {
+                  "timezone": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 80
+                  },
+                  "bookingSource": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "timezone"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "sourceSystem",
+              "columns",
+              "defaults"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "mapping"
+        ],
+        "additionalProperties": false
+      },
+      "SavedMappingReceipt": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "IntegrationHealth": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "hotelId": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 80
+          },
+          "hotelName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "HEALTHY",
+              "STALE",
+              "PARTIAL",
+              "FAILED",
+              "FALLBACK_ONLY"
+            ]
+          },
+          "lastStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastAttemptAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastRejected": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "hotelId",
+          "hotelName",
+          "status",
+          "lastStatus",
+          "lastAttemptAt",
+          "lastRejected"
+        ],
+        "additionalProperties": false
+      },
       "ImportMapping": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -4914,6 +5892,9 @@
                 "type": "string"
               },
               "guestEmail": {
+                "type": "string"
+              },
+              "guestPhone": {
                 "type": "string"
               },
               "nationality": {

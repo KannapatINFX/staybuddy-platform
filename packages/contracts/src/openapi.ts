@@ -48,18 +48,69 @@ const IssueAccessSchema = z.object({
   ttlMinutes: z.number().int().min(5).max(120).default(30),
 });
 const IssuedAccessSchema = z.object({ opaqueToken: z.string().min(32), expiresAt: UtcDateTimeSchema });
-const ReservationPreviewInputSchema = z.object({ csv: z.string().min(1), mapping: ImportMappingSchema });
+const ReservationPreviewInputSchema = z.object({
+  csv: z.string().min(1),
+  mapping: ImportMappingSchema.optional(),
+  mappingProfileId: IdentifierSchema.optional(),
+});
 const ReservationCommitInputSchema = z.object({
-  preview: ImportPreviewSchema,
-  mapping: ImportMappingSchema,
-  mappingName: z.string().min(1).max(120),
+  previewId: IdentifierSchema,
+  mappingName: z.string().min(1).max(120).optional(),
+  saveMapping: z.boolean().default(false),
+});
+const ServerImportPreviewSchema = ImportPreviewSchema.omit({ batchId: true }).extend({
+  previewId: IdentifierSchema,
+  expiresAt: UtcDateTimeSchema,
 });
 const ReservationCommitResultSchema = z.object({
   batchId: IdentifierSchema,
   status: z.enum(["COMPLETED", "PARTIALLY_REJECTED"]),
   created: z.number().int().nonnegative(),
   updated: z.number().int().nonnegative(),
+  unchanged: z.number().int().nonnegative(),
+  conflicted: z.number().int().nonnegative(),
   rejected: z.number().int().nonnegative(),
+});
+const ReservationImportSummarySchema = z.object({
+  id: IdentifierSchema,
+  sourceSystem: z.string(),
+  status: z.string(),
+  totalRows: z.number().int().nonnegative(),
+  created: z.number().int().nonnegative(),
+  updated: z.number().int().nonnegative(),
+  unchanged: z.number().int().nonnegative(),
+  conflicted: z.number().int().nonnegative(),
+  rejected: z.number().int().nonnegative(),
+  retryOfBatchId: IdentifierSchema.nullable(),
+  createdAt: UtcDateTimeSchema,
+  completedAt: UtcDateTimeSchema.nullable(),
+});
+const ImportRejectionSchema = z.object({
+  rowNumber: z.number().int().positive(),
+  code: z.string(),
+  detail: z.string(),
+  createdAt: UtcDateTimeSchema,
+});
+const ReservationImportDetailSchema = ReservationImportSummarySchema.extend({
+  rejections: z.array(ImportRejectionSchema),
+});
+const MappingProfileSchema = z.object({
+  id: IdentifierSchema,
+  name: z.string(),
+  sourceSystem: z.string(),
+  version: z.number().int().positive(),
+  mapping: ImportMappingSchema,
+  createdAt: UtcDateTimeSchema,
+});
+const SaveMappingSchema = z.object({ name: z.string().min(1).max(120), mapping: ImportMappingSchema });
+const SavedMappingReceiptSchema = z.object({ id: IdentifierSchema });
+const IntegrationHealthSchema = z.object({
+  hotelId: IdentifierSchema,
+  hotelName: z.string(),
+  status: z.enum(["HEALTHY", "STALE", "PARTIAL", "FAILED", "FALLBACK_ONLY"]),
+  lastStatus: z.string().nullable(),
+  lastAttemptAt: UtcDateTimeSchema.nullable(),
+  lastRejected: z.number().int().nonnegative().nullable(),
 });
 const CreatedHotelBodySchema = z.object({
   hotelId: IdentifierSchema,
@@ -125,6 +176,15 @@ const ReservationSummarySchema = z.object({
   roomType: z.string().nullable(),
   roomNumber: z.string().nullable(),
 });
+const ReservationDetailSchema = ReservationSummarySchema.extend({
+  sourceSystem: z.string(),
+  sourceVersion: z.string(),
+  sourceUpdatedAt: UtcDateTimeSchema,
+  importBatchId: IdentifierSchema.nullable(),
+  createdAt: UtcDateTimeSchema,
+  updatedAt: UtcDateTimeSchema,
+  rooms: z.array(z.record(z.string(), z.unknown())),
+});
 const AppBuildMutationReceiptSchema = z.object({
   status: z.number().int(),
   body: z.record(z.string(), z.unknown()),
@@ -177,9 +237,17 @@ const schemas = {
   AppBuildMutationReceipt: AppBuildMutationReceiptSchema,
   CanonicalReservation: CanonicalReservationSchema,
   ReservationPreviewInput: ReservationPreviewInputSchema,
+  ServerImportPreview: ServerImportPreviewSchema,
   ReservationCommitInput: ReservationCommitInputSchema,
   ReservationCommitResult: ReservationCommitResultSchema,
   ReservationSummary: ReservationSummarySchema,
+  ReservationDetail: ReservationDetailSchema,
+  ReservationImportSummary: ReservationImportSummarySchema,
+  ReservationImportDetail: ReservationImportDetailSchema,
+  MappingProfile: MappingProfileSchema,
+  SaveMapping: SaveMappingSchema,
+  SavedMappingReceipt: SavedMappingReceiptSchema,
+  IntegrationHealth: IntegrationHealthSchema,
   ImportMapping: ImportMappingSchema,
   ImportPreview: ImportPreviewSchema,
   IssueAccess: IssueAccessSchema,
@@ -257,7 +325,7 @@ export function createOpenApiDocument() {
       "/admin/reservation-imports/preview": post(
         "previewReservationImport",
         "ReservationPreviewInput",
-        "ImportPreview",
+        "ServerImportPreview",
         { secured: true },
       ),
       "/admin/reservation-imports/commit": post(
@@ -266,6 +334,28 @@ export function createOpenApiDocument() {
         "ReservationCommitResult",
         { secured: true, idempotent: true, status: "201" },
       ),
+      "/admin/reservation-imports": {
+        get: securedGet("listReservationImports", "ReservationImportSummary", true),
+      },
+      "/admin/reservation-imports/health": {
+        get: securedGet("getReservationImportHealth", "IntegrationHealth"),
+      },
+      "/admin/reservation-imports/{batchId}": {
+        get: securedGetWithPath("getReservationImport", "ReservationImportDetail", "batchId"),
+      },
+      "/admin/reservation-imports/{batchId}/retry": post(
+        "retryReservationImport",
+        undefined,
+        "ReservationCommitResult",
+        { secured: true, idempotent: true, pathIdentifier: "batchId", status: "201" },
+      ),
+      "/admin/reservation-mappings": {
+        get: securedGet("listReservationMappings", "MappingProfile", true),
+        ...post("saveReservationMapping", "SaveMapping", "SavedMappingReceipt", {
+          secured: true,
+          status: "201",
+        }),
+      },
       "/admin/reservations/manual": post(
         "createManualReservation",
         "CanonicalReservation",
@@ -273,6 +363,10 @@ export function createOpenApiDocument() {
         { secured: true, idempotent: true, status: "201" },
       ),
       "/admin/reservations": { get: securedGet("listReservations", "ReservationSummary", true) },
+      "/admin/reservations/{reservationId}": {
+        get: securedGetWithPath("getReservation", "ReservationDetail", "reservationId"),
+      },
+      "/ops/integrations/health": { get: securedGet("listIntegrationHealth", "IntegrationHealth", true) },
       "/admin/stays/{stayId}/claims": post("issueStayClaim", "IssueAccess", "IssuedAccess", {
         secured: true,
         pathIdentifier: "stayId",

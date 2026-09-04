@@ -82,6 +82,7 @@ function normalizeCsvRow(row: Record<string, string>, mapping: ImportMapping) {
     primaryGuest: {
       name: field(mapping.columns.guestName),
       email: field(mapping.columns.guestEmail),
+      phone: field(mapping.columns.guestPhone),
       nationality: field(mapping.columns.nationality)?.toUpperCase(),
       preferredLanguage: field(mapping.columns.preferredLanguage),
     },

@@ -1,29 +1,28 @@
 # Current Sprint
 
-**Sprint:** 7 — White-Label App Factory Baseline
+**Sprint:** 8 — Reservation Ingestion and Stay Preparation
 
-**Status:** CONDITIONAL — implementation plus local and hosted exit gates pass; dependency, protected-main, approved-asset, and signed-native-build gates remain
+**Status:** CONDITIONAL — implementation plus full local and hosted exit gates pass; dependency and protected-main gates remain
 
 **Updated:** 4 September 2026
 
 ## Completed and verified locally
 
-- One Expo mobile codebase now compiles strict hotel-pinned app identity, icon/splash assets, universal/app links, installation key, and four-locale store metadata.
-- Two synthetic hotel apps export successfully for iOS, Android, and web with distinct identifiers, schemes, hosts, assets, and generated build profiles.
-- Runtime bootstrap and local cache remain signed and tenant/app pinned, support ETag/304, and reject cross-hotel or expired fallback.
-- Deep-link handling rejects another hotel's host, tenant overrides, unknown routes, and hotel-selector behavior.
-- App Factory contracts, migration `0006`, deterministic build state machine, one-active-lane rule, append-only status events, idempotency, audit/outbox, and isolated worker failure handling are implemented.
-- `STAYBUDDY_APP_OPS` is verified end to end with narrowly scoped RLS; Support can read build detail but cannot queue or mutate builds.
-- Ops screens cover App Factory dashboard/configuration and build queue/detail/history (`SB-O-017` through `SB-O-020`).
-- ADR-0009, the App Factory operations runbook, updated OpenAPI, and 22 release-blocking Sprint 7 controls are present.
-- `pnpm ci:verify` passes against a new local PostgreSQL 17 database: six migrations, DB integration 12/12, API integration 7/7, production builds, 15 artifact groups, two validated synthetic app identities, and secret scan.
-- Stacked PR #5 at head `f3e7ee1` passes all four hosted checks in run `33828717023`, including clean PostgreSQL/Redis integration and both production Docker image builds.
-- Production validation intentionally blocks synthetic assets. No AWS, Hostinger, DNS, EAS cloud build, signing, store, deployment, or production data was accessed or changed.
+- Vendor-neutral canonical reservation DTO and adapter SDK support source identity/version, guest contact/language, dates/timezone, rooms, booking source, and provenance.
+- CSV import supports inline or saved versioned mapping, server-owned encrypted preview, validation/rejection preview, commit, history, detail, retry lineage, and manual fallback.
+- Commit reparses the encrypted source and never trusts normalized rows returned by a browser. Preview is tenant-bound, expires after 24 hours, and can be committed once.
+- Row outcomes are deterministic: `CREATED`, `UPDATED`, `UNCHANGED`, and `CONFLICTED`. Conflicts and invalid rows are isolated without rolling back valid upcoming stays.
+- Manual entry forces `MANUAL` provenance and server time; clients cannot impersonate a connector.
+- Hotel APIs expose upcoming reservations, reservation provenance, mapping profiles, batch history/rejections, retry, and health. Ops receives read-only cross-hotel health under platform RLS.
+- Hotel Admin covers `SB-H-003`, `SB-H-006`, `SB-H-007`, `SB-H-009`, and `SB-H-077`–`SB-H-080`. Ops covers `SB-O-012`, `SB-O-036`, and `SB-O-038`–`SB-O-041`.
+- ADR-0010, the operations runbook, updated OpenAPI, migration `0007`, and 16 release-blocking Sprint 8 controls are present.
+- `pnpm ci:verify` passes against a new PostgreSQL 17 database: seven migrations, DB integration 12/12, API integration 7/7, production builds, 15 artifact groups, and secret scan.
+- Stacked PR #6 at head `7799df4` is clean and all four required checks pass in hosted run `33890213508`.
+- No AWS, Hostinger, DNS, deployment, EAS cloud build, stores, or production data was accessed or changed.
 
 ## Remaining acceptance gates
 
-1. Complete and merge Sprints 4, 5, and 6 in dependency order; retarget/rebase Sprint 7 onto protected `main`, rerun required checks, obtain independent approval, and merge.
-2. Replace synthetic assets, placeholder domains, and store/legal metadata with approved production inputs; provision signing credentials through the later authorized publishing workflow.
-3. Produce signed iOS/Android binaries and complete native-device, deep-link, install-link, and store-readiness QA before any hotel app can ship.
+1. Complete Sprint 4→5→6→7 dependency merges, then retarget/rebase Sprint 8 onto protected `main`, rerun checks, obtain independent approval, and merge.
+2. Before production, configure preview retention cleanup, operational alerts, and real hotel mapping/source data.
 
-The repository-controlled local Sprint 7 exit gate passes. Sprint 8 has not started.
+The repository-controlled local Sprint 8 exit gate passes. Sprint 9 has not started.

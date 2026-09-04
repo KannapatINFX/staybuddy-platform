@@ -591,7 +591,7 @@ describe.sequential("StayBuddy phase-0 API", () => {
     });
     expect(previewResponse.statusCode).toBe(201);
     const preview = decode<{
-      batchId: string;
+      previewId: string;
       totalRows: number;
       validRows: number;
       rejectedRows: unknown[];
@@ -600,7 +600,7 @@ describe.sequential("StayBuddy phase-0 API", () => {
     expect(preview).toMatchObject({ totalRows: 3, validRows: 2 });
     expect(preview.rejectedRows).toHaveLength(1);
 
-    const payload = { preview, mapping, mappingName: "Integration profile" };
+    const payload = { previewId: preview.previewId, mappingName: "Integration profile", saveMapping: true };
     const idempotencyKey = `reservation-import-${randomUUID()}`;
     const first = await api.inject({
       method: "POST",
@@ -609,7 +609,11 @@ describe.sequential("StayBuddy phase-0 API", () => {
       payload,
     });
     expect(first.statusCode).toBe(201);
-    expect(decode<{ replayed: boolean; body: { created: number; rejected: number } }>(first)).toMatchObject({
+    const firstResult = decode<{
+      replayed: boolean;
+      body: { batchId: string; created: number; rejected: number };
+    }>(first);
+    expect(firstResult).toMatchObject({
       replayed: false,
       body: { created: 2, rejected: 1 },
     });
@@ -621,6 +625,157 @@ describe.sequential("StayBuddy phase-0 API", () => {
       payload,
     });
     expect(decode<{ replayed: boolean }>(replay).replayed).toBe(true);
+
+    const duplicatePreview = decode<{ previewId: string }>(
+      await api.inject({
+        method: "POST",
+        url: "/v1/admin/reservation-imports/preview",
+        headers: hotelHeaders(hotelA.hotelId),
+        payload: { csv, mapping },
+      }),
+    );
+    const duplicate = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservation-imports/commit",
+      headers: {
+        ...hotelHeaders(hotelA.hotelId),
+        "idempotency-key": `reservation-duplicate-${randomUUID()}`,
+      },
+      payload: { previewId: duplicatePreview.previewId },
+    });
+    expect(decode<{ body: { unchanged: number; updated: number } }>(duplicate).body).toMatchObject({
+      unchanged: 2,
+      updated: 0,
+    });
+
+    const newerAt = new Date(Date.now() + 60_000).toISOString();
+    const updatedCsv = csv.replaceAll(updatedAt, newerAt).replace("Ocean Suite,701", "Ocean Villa,801");
+    const updatedPreview = decode<{ previewId: string }>(
+      await api.inject({
+        method: "POST",
+        url: "/v1/admin/reservation-imports/preview",
+        headers: hotelHeaders(hotelA.hotelId),
+        payload: { csv: updatedCsv, mapping },
+      }),
+    );
+    const updated = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservation-imports/commit",
+      headers: { ...hotelHeaders(hotelA.hotelId), "idempotency-key": `reservation-update-${randomUUID()}` },
+      payload: { previewId: updatedPreview.previewId },
+    });
+    expect(decode<{ body: { updated: number; rejected: number } }>(updated).body).toMatchObject({
+      updated: 2,
+      rejected: 1,
+    });
+
+    const stalePreview = decode<{ previewId: string }>(
+      await api.inject({
+        method: "POST",
+        url: "/v1/admin/reservation-imports/preview",
+        headers: hotelHeaders(hotelA.hotelId),
+        payload: { csv, mapping },
+      }),
+    );
+    const stale = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservation-imports/commit",
+      headers: { ...hotelHeaders(hotelA.hotelId), "idempotency-key": `reservation-stale-${randomUUID()}` },
+      payload: { previewId: stalePreview.previewId },
+    });
+    expect(decode<{ body: { conflicted: number; status: string } }>(stale).body).toMatchObject({
+      conflicted: 2,
+      status: "PARTIALLY_REJECTED",
+    });
+
+    const retry = await api.inject({
+      method: "POST",
+      url: `/v1/admin/reservation-imports/${firstResult.body.batchId}/retry`,
+      headers: { ...hotelHeaders(hotelA.hotelId), "idempotency-key": `reservation-retry-${randomUUID()}` },
+      payload: {},
+    });
+    expect(decode<{ body: { conflicted: number } }>(retry).body.conflicted).toBe(2);
+
+    const history = await api.inject({
+      method: "GET",
+      url: "/v1/admin/reservation-imports",
+      headers: hotelHeaders(hotelA.hotelId),
+    });
+    expect(decode<unknown[]>(history).length).toBeGreaterThanOrEqual(5);
+    const mappings = await api.inject({
+      method: "GET",
+      url: "/v1/admin/reservation-mappings",
+      headers: hotelHeaders(hotelA.hotelId),
+    });
+    expect(decode<unknown[]>(mappings)).toHaveLength(1);
+
+    const tampered = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservation-imports/commit",
+      headers: { ...hotelHeaders(hotelA.hotelId), "idempotency-key": `reservation-tamper-${randomUUID()}` },
+      payload: {
+        previewId: randomUUID(),
+        preview: { reservations: [{ primaryGuest: { name: "Tampered" } }] },
+      },
+    });
+    expect(tampered.statusCode).toBe(400);
+
+    const crossTenantPreview = decode<{ previewId: string }>(
+      await api.inject({
+        method: "POST",
+        url: "/v1/admin/reservation-imports/preview",
+        headers: hotelHeaders(hotelA.hotelId),
+        payload: { csv, mapping },
+      }),
+    );
+    const crossTenantCommit = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservation-imports/commit",
+      headers: {
+        ...hotelHeaders(hotelB.hotelId),
+        "idempotency-key": `reservation-cross-tenant-${randomUUID()}`,
+      },
+      payload: { previewId: crossTenantPreview.previewId },
+    });
+    expect(crossTenantCommit.statusCode).toBe(404);
+
+    const manualCheckIn = new Date(Date.now() + 40 * 86_400_000).toISOString();
+    const manualCheckOut = new Date(Date.now() + 42 * 86_400_000).toISOString();
+    const manualExternalId = `manual-${randomUUID()}`;
+    const manual = await api.inject({
+      method: "POST",
+      url: "/v1/admin/reservations/manual",
+      headers: { ...hotelHeaders(hotelA.hotelId), "idempotency-key": `manual-${randomUUID()}` },
+      payload: {
+        sourceSystem: "IMPERSONATED_PMS",
+        externalReservationId: manualExternalId,
+        status: "CONFIRMED",
+        bookingSource: "PHONE",
+        confirmationCode: "MANUAL-100",
+        primaryGuest: { name: "Manual Guest", phone: "+66800000000" },
+        checkInAt: manualCheckIn,
+        checkOutAt: manualCheckOut,
+        timezone: "Asia/Bangkok",
+        rooms: [{ roomType: "Deluxe" }],
+        updatedAtSource: "2000-01-01T00:00:00.000Z",
+      },
+    });
+    expect(manual.statusCode).toBe(201);
+    const manualSource = await adminPool.query<{ source_system: string }>(
+      "SELECT source_system FROM reservations WHERE hotel_id=$1 AND external_reservation_id=$2",
+      [hotelA.hotelId, manualExternalId],
+    );
+    expect(manualSource.rows[0]?.source_system).toBe("MANUAL");
+
+    const opsHealth = await api.inject({
+      method: "GET",
+      url: "/v1/ops/integrations/health",
+      headers: { "x-platform-role": "STAYBUDDY_SUPPORT", "x-debug-actor-id": supportActorId },
+    });
+    expect(opsHealth.statusCode).toBe(200);
+    expect(
+      decode<Array<{ hotelId: string }>>(opsHealth).some((item) => item.hotelId === hotelA.hotelId),
+    ).toBe(true);
   });
 
   it("keeps pre-arrival low-trust, enforces consent and unlocks in-house only after claim", async () => {

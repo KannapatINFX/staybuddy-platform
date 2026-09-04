@@ -17,7 +17,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Link href="/hotels/new">Create hotel</Link>
             <Link href="/app-factory">App Factory</Link>
             <Link href="/app-builds">Build Queue</Link>
-            <span>Integrations</span>
+            <Link href="/integrations">Integrations</Link>
             <span>AI Operations</span>
             <span>Billing & Commission</span>
           </nav>
